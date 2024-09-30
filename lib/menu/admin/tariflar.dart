@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:gilam/format.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:intl/intl.dart';
 
 class TariflarPage extends StatefulWidget {
   @override
@@ -12,6 +15,17 @@ class _TariflarPageState extends State<TariflarPage> {
   TextEditingController _tarifNomiController = TextEditingController(); // Tarif nomi uchun controller
   TextEditingController _tarifSummaController = TextEditingController(); // Tarif summa uchun controller
   String? editingTarifId; // Tahrirlanayotgan tarif ID si
+  String _formatSum(dynamic sum) {
+    final formatter = NumberFormat('#,###');
+    int actualSum;
+    if (sum is String) {
+      actualSum = int.parse(sum);
+    } else {
+      actualSum = sum;
+    }
+    return formatter.format(actualSum);
+  }
+
 
   @override
   void initState() {
@@ -21,7 +35,7 @@ class _TariflarPageState extends State<TariflarPage> {
 
   // API orqali tariflar ro'yxatini yuklash
   Future<void> _fetchTariflar() async {
-    final url = 'https://visualai.uz/api/tariflar.php';
+    final url = 'https://visualai.uz/apidemo/tariflar.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -39,7 +53,7 @@ class _TariflarPageState extends State<TariflarPage> {
 
   // Yangi tarif qo'shish uchun API ga so'rov yuborish
   Future<void> _addTarif() async {
-    final url = 'https://visualai.uz/api/tarifadd.php';
+    final url = 'https://visualai.uz/apidemo/tarifadd.php';
     final newTarif = {
       'tarif_nomi': _tarifNomiController.text,
       'tarif_summa': int.parse(_tarifSummaController.text),
@@ -67,7 +81,7 @@ class _TariflarPageState extends State<TariflarPage> {
 
   // Tahrirlangan tarifni yangilash uchun API ga so'rov yuborish
   Future<void> _updateTarif(String id) async {
-    final url = 'https://visualai.uz/api/tarifadd.php';
+    final url = 'https://visualai.uz/apidemo/tarifadd.php';
     final updatedTarif = {
       'id': id, // Tahrirlanayotgan tarif ID si
       'tarif_nomi': _tarifNomiController.text,
@@ -97,16 +111,15 @@ class _TariflarPageState extends State<TariflarPage> {
   // Yangi yoki tahrirlangan tarif qo'shish uchun dialogni ko'rsatish
   void _showAddOrEditTarifDialog({bool isEdit = false, Map<String, dynamic>? tarif}) {
     if (isEdit && tarif != null) {
-      // Tahrir rejimi
       _tarifNomiController.text = tarif['tarif_nomi'];
-      _tarifSummaController.text = tarif['tarif_summa'].toString();
+      _tarifSummaController.text = _formatSum(tarif['tarif_summa']);
       editingTarifId = tarif['id'];
     } else {
-      // Yangi tarif qo'shish rejimi
       _tarifNomiController.clear();
       _tarifSummaController.clear();
       editingTarifId = null;
     }
+
 
     showDialog(
       context: context,
@@ -146,6 +159,7 @@ class _TariflarPageState extends State<TariflarPage> {
                 TextField(
                   controller: _tarifSummaController,
                   keyboardType: TextInputType.number,
+                  inputFormatters: [NumberInputFormatter()],
                   decoration: InputDecoration(
                     labelText: 'Summa kiriting',
                     border: OutlineInputBorder(
@@ -153,10 +167,10 @@ class _TariflarPageState extends State<TariflarPage> {
                     ),
                     filled: true,
                     fillColor: Colors.grey[200],
-                    hintText: 'Masalan: 10000',
+                    hintText: 'Masalan: 10,000',
                   ),
                 ),
-                SizedBox(height: 20),
+                 SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -249,7 +263,7 @@ class _TariflarPageState extends State<TariflarPage> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  'Summa: ${tarif['tarif_summa']}',
+                  'Summa: ${_formatSum(tarif['tarif_summa'])}',
                   style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
               ),

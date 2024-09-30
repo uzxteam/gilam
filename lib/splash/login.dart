@@ -19,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
     String password = _passwordController.text;
 
     // API'ga so'rov yuborish
-    var url = Uri.parse('https://visualai.uz/api/user_check.php');
+    var url = Uri.parse('https://visualai.uz/apidemo/user_check.php');
     var response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},

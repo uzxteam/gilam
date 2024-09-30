@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -10,6 +11,16 @@ class TugallanganPage extends StatefulWidget {
 
 class _ZakazlarPageState extends State<TugallanganPage> {
   List<dynamic> zakazlarList = [];
+  String _formatSum(dynamic sum) {
+    final formatter = NumberFormat('#,###');
+    int actualSum;
+    if (sum is String) {
+      actualSum = int.parse(sum);
+    } else {
+      actualSum = sum;
+    }
+    return formatter.format(actualSum);
+  }
 
   @override
   void initState() {
@@ -19,7 +30,7 @@ class _ZakazlarPageState extends State<TugallanganPage> {
 
   // API orqali zakazlar ro'yxatini yuklash
   Future<void> _fetchZakazlar() async {
-    final url = 'https://visualai.uz/api/tugadi.php?zakaz_status=5';
+    final url = 'https://visualai.uz/apidemo/tugadi.php?zakaz_status=5';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {

@@ -4,6 +4,7 @@ import 'package:gilam/menu/admin/adminhome.dart';
 import 'package:gilam/menu/admin/adminhometest.dart';
 import 'package:gilam/menu/dastavka/dastvakalogin.dart';
 import 'package:gilam/menu/dastavka/dastavka.dart';
+import 'package:gilam/menu/dastavka/yordamchiadmin.dart';
 import 'package:gilam/menu/quritish/quritish.dart';
 import 'package:gilam/menu/yuvish/yuvish.dart';
 import 'package:gilam/menu/yuvish/yuvuvchilogin.dart';
@@ -64,6 +65,11 @@ class _SplashScreenState extends State<SplashScreen> {
         // Agar user_status 1 bo'lsa, ZakazHomePage ga o'tish
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => YuvuvchiLoginPage()),
+        );
+      } else if (userStatus == 7) {
+        // Agar user_status 1 bo'lsa, ZakazHomePage ga o'tish
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => DastavkaAdminLoginPage()),
         );
       }else {
         // Boshqa holatda, AdminHomePage ga o'tish

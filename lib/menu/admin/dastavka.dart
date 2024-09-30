@@ -19,7 +19,7 @@ class _ZakazlarPageState extends State<DastavkaadminPage> {
 
   // API orqali zakazlar ro'yxatini yuklash
   Future<void> _fetchZakazlar() async {
-    final url = 'https://visualai.uz/api/dastavka.php?zakaz_status=4';
+    final url = 'https://visualai.uz/apidemo/dastavka.php?zakaz_status=4';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {

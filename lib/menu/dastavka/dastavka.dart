@@ -3,6 +3,7 @@ import 'package:gilam/menu/dastavka/dastavkasubmit.dart';
 import 'package:gilam/menu/dastavka/dastavkaupdate.dart'; // Yuborish sahifasi
 import 'package:gilam/splash/splash.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -19,6 +20,10 @@ class _DastavkaPageState extends State<DastavkaPage> {
   Map<String, dynamic>? selectedZakaz;
   String userName = '';
   int offlineCount = 0; // Yuborilmagan ma'lumotlar sonini saqlash
+  String formatSum(double sum) {
+    final formatter = NumberFormat('#,###');
+    return formatter.format(sum);
+  }
 
   @override
   void initState() {
@@ -55,7 +60,7 @@ class _DastavkaPageState extends State<DastavkaPage> {
 
   // API dan ma'lumotlarni olish
   Future<void> _fetchZakazlar() async {
-    final url = 'https://visualai.uz/api/dastavka.php';
+    final url = 'https://visualai.uz/apidemo/dastavka.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -271,7 +276,7 @@ class _DastavkaPageState extends State<DastavkaPage> {
                     ),
                     Expanded(
                       child: Text(
-                        'Summa: ${detail['zakaz_summa']} so\'m',
+                        'Summa: ${formatSum(double.tryParse(detail['zakaz_summa'].toString()) ?? 0)} so\'m',
                         style: TextStyle(fontSize: 16),
                       ),
                     ),

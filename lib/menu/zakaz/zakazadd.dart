@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../format.dart';
 import 'zakaz_home.dart';
 
 class ZakazAddPage extends StatefulWidget {
@@ -17,7 +19,7 @@ class ZakazAddPage extends StatefulWidget {
 
 class _ZakazAddPageState extends State<ZakazAddPage> {
   final TextEditingController _customerNameController = TextEditingController();
-  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController(text: '+998');
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _skidkaSummaController = TextEditingController();
   final TextEditingController _tolovSummaController = TextEditingController();
@@ -32,10 +34,13 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
   void initState() {
     super.initState();
     _loadUnsentOrdersCount(); // Yuborilmagan buyurtmalar sonini yuklash
-    _tolovSummaController.text = widget.totalSum.toStringAsFixed(0);
+    _tolovSummaController.text = formatSum(widget.totalSum);
     _calculateRemainingSum();
   }
-
+  String formatSum(double sum) {
+    final formatter = NumberFormat('#,###');
+    return formatter.format(sum);
+  }
   // Yuborilmagan buyurtmalar sonini yuklash funksiyasi
   Future<void> _loadUnsentOrdersCount() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -90,7 +95,7 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
                             ),
                           ),
                           child: Text(
-                            'Jami: ${widget.totalSum.toStringAsFixed(0)}',
+                            'Jami: ${formatSum(widget.totalSum)}',
                             style: TextStyle(fontSize: 18, color: Colors.white),
                           ),
                         ),
@@ -208,6 +213,7 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
                               child: TextField(
                                 controller: _naqdController,
                                 keyboardType: TextInputType.number,
+                                inputFormatters: [NumberInputFormatter()],
                                 decoration: InputDecoration(
                                   labelText: 'Naqd',
                                   filled: true,
@@ -228,6 +234,7 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
                               child: TextField(
                                 controller: _otkazmaController,
                                 keyboardType: TextInputType.number,
+                                inputFormatters: [NumberInputFormatter()],
                                 decoration: InputDecoration(
                                   labelText: 'O\'tkazma',
                                   filled: true,
@@ -249,6 +256,7 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
                         TextField(
                           controller: _skidkaSummaController,
                           keyboardType: TextInputType.number,
+                          inputFormatters: [NumberInputFormatter()],
                           decoration: InputDecoration(
                             labelText: 'Skidka summa',
                             filled: true,
@@ -365,17 +373,18 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
 
   // Qoldiq summani hisoblash funksiyasi
   void _calculateRemainingSum() {
-    double naqdSumma = double.tryParse(_naqdController.text) ?? 0.0;
-    double otkazmaSumma = double.tryParse(_otkazmaController.text) ?? 0.0;
-    double skidkaSumma = double.tryParse(_skidkaSummaController.text) ?? 0.0;
+    double naqdSumma = double.tryParse(_naqdController.text.replaceAll(',', '')) ?? 0.0;
+    double otkazmaSumma = double.tryParse(_otkazmaController.text.replaceAll(',', '')) ?? 0.0;
+    double skidkaSumma = double.tryParse(_skidkaSummaController.text.replaceAll(',', '')) ?? 0.0;
 
     double jamiSumma = widget.totalSum;
     double tolanganSumma = naqdSumma + otkazmaSumma;
 
     double qoldiqSumma = jamiSumma - (tolanganSumma + skidkaSumma);
 
-    _qoldiqSummaController.text = qoldiqSumma.toStringAsFixed(0); // O'nlik qismini olib tashlash
+    _qoldiqSummaController.text = formatSum(qoldiqSumma); // Formatlangan summani o'rnatish
   }
+
 
   // Buyurtmani tasdiqlashdan oldin saqlash funksiyasi
   void _saveOrder(BuildContext context) async {
@@ -386,9 +395,9 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
     }
 
     // Naqd va O'tkazma qiymatlari bo'sh bo'lsa, ularni 0 qilib yuborish
-    double naqdSumma = double.tryParse(_naqdController.text) ?? 0.0;
-    double otkazmaSumma = double.tryParse(_otkazmaController.text) ?? 0.0;
-    double skidkaSumma = double.tryParse(_skidkaSummaController.text) ?? 0.0;
+    double naqdSumma = double.tryParse(_naqdController.text.replaceAll(',', '')) ?? 0.0;
+    double otkazmaSumma = double.tryParse(_otkazmaController.text.replaceAll(',', '')) ?? 0.0;
+    double skidkaSumma = double.tryParse(_skidkaSummaController.text.replaceAll(',', '')) ?? 0.0;
 
     var orderData = {
       "mijoz": [
@@ -403,7 +412,7 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
           "user_id": userId, // user_id ni SharedPreferences dan olish
           "jami_summa": widget.totalSum,
           "skidka_summa": skidkaSumma,
-          "qoldiq_summa": double.parse(_qoldiqSummaController.text),
+          "qoldiq_summa": double.parse(_qoldiqSummaController.text.replaceAll(',', '')), // Vergullarni olib tashlab, double qilib o'zgartirish
           "zakaz_haqida": _izohController.text,
           "zakaz_status": 1, // Zakaz statusini o'zgartiring
         }
@@ -507,7 +516,7 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
   Future<void> _submitOrder(Map<String, dynamic> orderData, BuildContext? context) async {
     try {
       final response = await http.post(
-        Uri.parse('https://visualai.uz/api/zakaz_add.php'),
+        Uri.parse('https://visualai.uz/apidemo/zakaz_add.php'),
         headers: {
           'Content-Type': 'application/json',
         },

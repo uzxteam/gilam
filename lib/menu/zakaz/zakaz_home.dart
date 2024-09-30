@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:gilam/menu/dastavka/dastvakalogin.dart';
 import 'package:gilam/menu/zakaz/zakazadd.dart';
 import 'package:gilam/menu/zakaz/zakazupdate.dart';
+import 'package:gilam/numberformat.dart';
 import 'package:gilam/splash/splash.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -49,6 +51,11 @@ class _ZakazHomePageState extends State<ZakazHomePage> {
     });
   }
 
+  String formatSum(double sum) {
+    final formatter = NumberFormat('#,###');
+    return formatter.format(sum);
+  }
+
 // Internet holatini tekshirish funksiyasi
   Future<void> _checkConnectivity() async {
     var connectivityResult = await (Connectivity().checkConnectivity());
@@ -89,7 +96,7 @@ class _ZakazHomePageState extends State<ZakazHomePage> {
 
   // API orqali tariflar ro'yxatini yuklash va SharedPreferences ga saqlash
   Future<void> _fetchTariflar() async {
-    final url = 'https://visualai.uz/api/tariflar.php';
+    final url = 'https://visualai.uz/apidemo/tariflar.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -110,7 +117,7 @@ class _ZakazHomePageState extends State<ZakazHomePage> {
 
   // API orqali maxsulotlar ro'yxatini yuklash va SharedPreferences ga saqlash
   Future<void> _fetchMaxsulotlar() async {
-    final url = 'https://visualai.uz/api/maxsulot.php';
+    final url = 'https://visualai.uz/apidemo/maxsulot.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -183,17 +190,21 @@ class _ZakazHomePageState extends State<ZakazHomePage> {
 
   // M2 qiymati o'zgarganda chaqiriladi va summani hisoblaydi
   void _calculateSumma(int index) {
-    double m2 = double.tryParse(m2Controllers[index].text) ?? 0.0;
+    double m2 = double.tryParse(m2Controllers[index].text.replaceAll(',', '')) ?? 0.0; // Agar son formatlangan bo'lsa, vergullarni olib tashlash
     double summa = m2 * selectedTarifSummas[index];
-    summaControllers[index].text = summa.toStringAsFixed(0); // Summa ni ko'rsatish, o'nlik qismisiz
+    summaControllers[index].text = formatSum(summa); // Formatlangan summani o'rnatish
     _calculateTotalSum(); // Jami summani qayta hisoblash
   }
+
 
   // Jami summani hisoblash
   double _calculateTotalSum() {
     double total = 0.0;
     for (var controller in summaControllers) {
-      total += double.tryParse(controller.text) ?? 0.0;
+      // Vergullarni olib tashlash va keyin double'ga o'zgartirish
+      String formattedNumber = controller.text.replaceAll(',', '');
+      double currentValue = double.tryParse(formattedNumber) ?? 0.0;
+      total += currentValue;
     }
     return total;
   }
@@ -452,7 +463,7 @@ class _ZakazHomePageState extends State<ZakazHomePage> {
                               ),
                             ),
                             child: Text(
-                              '${_calculateTotalSum().toStringAsFixed(0)}', // Jami summani ko'rsatish
+                              formatSum(_calculateTotalSum()),// Jami summani ko'rsatish
                               style: TextStyle(fontSize: 18,color: Colors.white),
                             ),
                           ),
@@ -570,9 +581,10 @@ class _ZakazHomePageState extends State<ZakazHomePage> {
                           borderRadius: BorderRadius.circular(12), // Tugma burchaklari
                         ),
                       ),
-                      child: Text(
-                        "Maxsulot qo'shish",
-                        style: TextStyle(fontSize: 16,color: Colors.white),
+                      child: Icon(
+                        Icons.add, // "+" ikonka
+                        size: 34, // Ikonka o'lchami
+                        color: Colors.white, // Ikonka rangi
                       ),
                     ),
                     // "Keyingisi" tugmasi

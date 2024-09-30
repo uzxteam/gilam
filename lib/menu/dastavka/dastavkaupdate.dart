@@ -50,7 +50,7 @@ class _DastavkaUpdatePageState extends State<DastavkaUpdatePage> {
 
       try {
         final response = await http.post(
-          Uri.parse('https://visualai.uz/api/dastavka_add.php'),
+          Uri.parse('https://visualai.uz/apidemo/dastavka_add.php'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode(zakaz),
         );

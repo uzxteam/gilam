@@ -122,7 +122,7 @@ class BannerCardWidget extends StatelessWidget {
 
 // API ma'lumotlarini olish va bannerlarni yangilash uchun funksiya
 Future<List<BannerInfo>> fetchBannerData() async {
-  final response = await http.get(Uri.parse('https://visualai.uz/api/zakazsoni.php'));
+  final response = await http.get(Uri.parse('https://visualai.uz/apidemo/zakazsoni.php'));
   List<BannerInfo> banners = [
     BannerInfo("Tugallangan", "0", Colors.green.withOpacity(0.8), "5", 0),
     BannerInfo("Yuvishda", "0", Colors.purple.withOpacity(0.8), "1", 0),

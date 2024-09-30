@@ -25,7 +25,7 @@ class _QuritishPageState extends State<QuritishPage> {
 
   // API orqali zakazlar ro'yxatini yuklash
   Future<void> _fetchZakazlar() async {
-    final url = 'https://visualai.uz/api/quritish.php';
+    final url = 'https://visualai.uz/apidemo/quritish.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -126,7 +126,7 @@ class _QuritishPageState extends State<QuritishPage> {
       'zakaz_id': selectedZakazId, // Yuboriladigan ID ni o'zgartirish
     };
 
-    final url = 'https://visualai.uz/api/qadoq_update.php';
+    final url = 'https://visualai.uz/apidemo/qadoq_update.php';
     try {
       final response = await http.post(
         Uri.parse(url),

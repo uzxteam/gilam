@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:gilam/format.dart';
 import 'package:gilam/menu/dastavka/dastavka.dart';
 import 'package:gilam/splash/splash.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -33,6 +35,10 @@ class _DastavkaSubmitPageState extends State<DastavkaSubmitPage> {
   TextEditingController naqtController = TextEditingController();
   TextEditingController otkazmaController = TextEditingController();
   TextEditingController skidkaController = TextEditingController();
+  String formatSum(double sum) {
+    final formatter = NumberFormat('#,###');
+    return formatter.format(sum);
+  }
 
   @override
   void initState() {
@@ -141,7 +147,7 @@ class _DastavkaSubmitPageState extends State<DastavkaSubmitPage> {
     if (connected) {
       try {
         final response = await http.post(
-          Uri.parse('https://visualai.uz/api/dastavka_add.php'),
+          Uri.parse('https://visualai.uz/apidemo/dastavka_add.php'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode(requestData),
         );
@@ -312,7 +318,7 @@ class _DastavkaSubmitPageState extends State<DastavkaSubmitPage> {
                                 ),
                                 Expanded(
                                   child: Text(
-                                    'Summa: ${detail['zakaz_summa']} so\'m',
+                                    'Summa: ${formatSum(double.tryParse(detail['zakaz_summa'].toString()) ?? 0)} so\'m',
                                     style: TextStyle(fontSize: 16),
                                   ),
                                 ),
@@ -339,16 +345,16 @@ class _DastavkaSubmitPageState extends State<DastavkaSubmitPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Jami: ${widget.zakaz['jami_summa']} so\'m'),
-                  Text('Skidka: $skidkaSumma so\'m'),
+                  Text('Jami: ${formatSum(double.tryParse(widget.zakaz['jami_summa'].toString()) ?? 0)} so\'m'),
+                  Text('Skidka: ${formatSum(double.tryParse(skidkaSumma.toString()) ?? 0)} so\'m'),
                 ],
               ),
               SizedBox(height: 5),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Tolangan: ${(naqtSumma + otkazmaSumma)} so\'m'),
-                  Text('Qoldiq: $tolashiKerakSumma so\'m'),
+                  Text('Tolangan: ${formatSum(naqtSumma + otkazmaSumma)} so\'m'),
+                  Text('Qoldiq: ${formatSum(double.tryParse(tolashiKerakSumma.toString()) ?? 0)} so\'m'),
                 ],
               ),
               SizedBox(height: 20),
@@ -363,6 +369,7 @@ class _DastavkaSubmitPageState extends State<DastavkaSubmitPage> {
                         labelText: 'Naqt',
                       ),
                       keyboardType: TextInputType.number,
+                      inputFormatters: [NumberInputFormatter()],
                       controller: naqtController,
                       onChanged: (value) {
                         setState(() {
@@ -381,6 +388,7 @@ class _DastavkaSubmitPageState extends State<DastavkaSubmitPage> {
                         labelText: 'O\'tkazma',
                       ),
                       keyboardType: TextInputType.number,
+                      inputFormatters: [NumberInputFormatter()],
                       controller: otkazmaController,
                       onChanged: (value) {
                         setState(() {
@@ -399,6 +407,7 @@ class _DastavkaSubmitPageState extends State<DastavkaSubmitPage> {
                         labelText: 'Skidka',
                       ),
                       keyboardType: TextInputType.number,
+                      inputFormatters: [NumberInputFormatter()],
                       controller: skidkaController,
                       onChanged: (value) {
                         setState(() {

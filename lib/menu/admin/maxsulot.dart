@@ -19,7 +19,7 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
 
   // API orqali maxsulotlar ro'yxatini yuklash
   Future<void> _fetchMaxsulotlar() async {
-    final url = 'https://visualai.uz/api/maxsulot.php';
+    final url = 'https://visualai.uz/apidemo/maxsulot.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -37,7 +37,7 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
 
   // Yangi maxsulot turini qo'shish uchun API ga so'rov yuborish
   Future<void> _addMaxsulotTuri() async {
-    final url = 'https://visualai.uz/api/maxsulot_turiadd.php';
+    final url = 'https://visualai.uz/apidemo/maxsulot_turiadd.php';
     final newMaxsulotTuri = {
       'maxsulot_turi': _maxsulotTuriController.text,
     };
