@@ -9,7 +9,7 @@ class BannerInfo {
   final String amount;
   final Color color;
   final String zakazStatus;
-  final int zakazSoni; // Zakaz soni qo'shildi
+  final int zakazSoni;
 
   BannerInfo(this.title, this.amount, this.color, this.zakazStatus, this.zakazSoni);
 }
@@ -19,30 +19,32 @@ class BannerCardWidget extends StatelessWidget {
   final String title;
   final String amount;
   final Color color;
-  final String zakazStatus; // Zakaz statusi qo'shildi
-  final int zakazSoni; // Zakaz soni qo'shildi
-  final VoidCallback onDetailPressed; // Batafsil tugmasi bosilganda chaqiriladigan funksiya
+  final String zakazStatus;
+  final int zakazSoni;
+  final VoidCallback onDetailPressed;
 
   const BannerCardWidget({
     required this.title,
     required this.amount,
     required this.color,
     required this.zakazStatus,
-    required this.zakazSoni, // Zakaz soni qo'shildi
-    required this.onDetailPressed, // Batafsil tugmasi uchun funksiya qo'shildi
+    required this.zakazSoni,
+    required this.onDetailPressed,
   });
 
   @override
   Widget build(BuildContext context) {
+    double scale = MediaQuery.of(context).textScaleFactor;
+
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 15), // Banner orasidagi va pastki bo'shliq
-      width: 200, // Banner kengligi qisqartirildi
+      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      width: 200,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(40), // Kartalarni yumaloq qilish
+        borderRadius: BorderRadius.circular(40),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.5), // Kartaning o'z rangiga mos soyani qo'shish
+            color: color.withOpacity(0.5),
             blurRadius: 5,
             spreadRadius: 1,
             offset: Offset(0, 5),
@@ -52,47 +54,40 @@ class BannerCardWidget extends StatelessWidget {
       child: Stack(
         children: [
           Padding(
-            padding: const EdgeInsets.only(left: 15, top: 18, bottom: 8), // Chapdan 10 px, yuqori va pastdan 8 px bo'shliq
+            padding: const EdgeInsets.only(left: 15, top: 18, bottom: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Banner nomi va zakaz soni birga ko'rsatiladi
-                Align(
-                  alignment: Alignment.centerLeft, // Nomlarni biroz o'ngroqqa surish uchun
-                  child: Text(
-                    '$title ($zakazSoni)',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                Text(
+                  '$title ($zakazSoni)',
+                  style: TextStyle(
+                    fontSize: 16 * scale,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
                 SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerLeft, // Raqamlarni ham biroz o'ngroqqa surish uchun
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min, // Faqat matn uchun yetarli bo'lgan joyni oladi
-                    children: [
-                      Text(
-                        amount,
-                        style: TextStyle(
-                          fontSize: 32, // Raqamlar uchun shrift kattaligi
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      amount,
+                      style: TextStyle(
+                        fontSize: 32 * scale,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                      SizedBox(width: 5), // Raqam va "So'm" orasida biroz bo'shliq qo'shish uchun
-                      Text(
-                        "So'm",
-                        style: TextStyle(
-                          fontSize: 20, // "So'm" uchun shrift kattaligi
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                    ),
+                    SizedBox(width: 5),
+                    Text(
+                      "So'm",
+                      style: TextStyle(
+                        fontSize: 20 * scale,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -101,7 +96,7 @@ class BannerCardWidget extends StatelessWidget {
             bottom: 16,
             right: 16,
             child: ElevatedButton(
-              onPressed: onDetailPressed, // Batafsil tugmasi bosilganda funksiya chaqiriladi
+              onPressed: onDetailPressed,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
@@ -122,7 +117,7 @@ class BannerCardWidget extends StatelessWidget {
 
 // API ma'lumotlarini olish va bannerlarni yangilash uchun funksiya
 Future<List<BannerInfo>> fetchBannerData() async {
-  final response = await http.get(Uri.parse('https://visualai.uz/apidemo/zakazsoni.php'));
+  final response = await http.get(Uri.parse('https://visualai.uz/api/zakazsoni.php'));
   List<BannerInfo> banners = [
     BannerInfo("Tugallangan", "0", Colors.green.withOpacity(0.8), "5", 0),
     BannerInfo("Yuvishda", "0", Colors.purple.withOpacity(0.8), "1", 0),
@@ -138,7 +133,7 @@ Future<List<BannerInfo>> fetchBannerData() async {
 
       for (var zakaz in zakazList) {
         String status = zakaz['zakaz_status'];
-        String formattedAmount = formatNumber(zakaz['jami_summa']); // Raqamni formatlash
+        String formattedAmount = formatNumber(zakaz['jami_summa']);
         int zakazSoni = int.parse(zakaz['zakaz_soni']);
 
         switch (status) {
@@ -149,7 +144,7 @@ Future<List<BannerInfo>> fetchBannerData() async {
             banners[2] = BannerInfo("Qadoqlashda", formattedAmount, Colors.blue.withOpacity(0.8), "2", zakazSoni);
             break;
           case '3':
-            banners[3] = BannerInfo("Yuborishga tayyor", formattedAmount, Colors.blueGrey.withOpacity(0.8), "3", zakazSoni);
+            banners[3] = BannerInfo("Yuborishga tayyor", formattedAmount, Colors.deepOrange.withOpacity(0.8), "3", zakazSoni);
             break;
           case '4':
             banners[4] = BannerInfo("Yetqazib berishda", formattedAmount, Colors.orange.withOpacity(0.8), "4", zakazSoni);

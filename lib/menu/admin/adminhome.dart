@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:gilam/menu/admin/hodimlar.dart';
-import 'package:gilam/menu/admin/kirim_turi.dart';
-import 'package:gilam/menu/admin/maxsulot.dart';
-import 'package:gilam/menu/admin/mijozlar.dart';
-import 'package:gilam/menu/admin/tariflar.dart';
+import 'package:gilam/menu/admin/batafsil/hodimlar.dart';
+import 'package:gilam/menu/admin/sozlamalar/kirim_turi.dart';
+import 'package:gilam/menu/admin/batafsil/maxsulot.dart';
+import 'package:gilam/menu/admin/sozlamalar/mijozlar.dart';
+import 'package:gilam/menu/admin/sozlamalar/tariflar.dart';
 import 'package:gilam/splash/splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

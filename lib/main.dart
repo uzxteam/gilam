@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gilam/menu/admin/kirim_turi.dart';
+import 'package:gilam/menu/admin/sozlamalar/kirim_turi.dart';
 import 'dart:async';
 
 import 'package:gilam/splash/splash.dart';

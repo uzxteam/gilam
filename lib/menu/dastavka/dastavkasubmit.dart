@@ -147,7 +147,7 @@ class _DastavkaSubmitPageState extends State<DastavkaSubmitPage> {
     if (connected) {
       try {
         final response = await http.post(
-          Uri.parse('https://visualai.uz/apidemo/dastavka_add.php'),
+          Uri.parse('https://visualai.uz/api/dastavka_add.php'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode(requestData),
         );
@@ -369,7 +369,6 @@ class _DastavkaSubmitPageState extends State<DastavkaSubmitPage> {
                         labelText: 'Naqt',
                       ),
                       keyboardType: TextInputType.number,
-                      inputFormatters: [NumberInputFormatter()],
                       controller: naqtController,
                       onChanged: (value) {
                         setState(() {
@@ -388,7 +387,6 @@ class _DastavkaSubmitPageState extends State<DastavkaSubmitPage> {
                         labelText: 'O\'tkazma',
                       ),
                       keyboardType: TextInputType.number,
-                      inputFormatters: [NumberInputFormatter()],
                       controller: otkazmaController,
                       onChanged: (value) {
                         setState(() {
@@ -407,7 +405,6 @@ class _DastavkaSubmitPageState extends State<DastavkaSubmitPage> {
                         labelText: 'Skidka',
                       ),
                       keyboardType: TextInputType.number,
-                      inputFormatters: [NumberInputFormatter()],
                       controller: skidkaController,
                       onChanged: (value) {
                         setState(() {

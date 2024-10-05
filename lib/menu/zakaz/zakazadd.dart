@@ -516,7 +516,7 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
   Future<void> _submitOrder(Map<String, dynamic> orderData, BuildContext? context) async {
     try {
       final response = await http.post(
-        Uri.parse('https://visualai.uz/apidemo/zakaz_add.php'),
+        Uri.parse('https://visualai.uz/api/zakaz_add.php'),
         headers: {
           'Content-Type': 'application/json',
         },

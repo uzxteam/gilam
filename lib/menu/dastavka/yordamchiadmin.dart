@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:gilam/menu/admin/dastavgabiriktirish.dart';
-import 'package:gilam/menu/admin/qadoq.dart';
-import 'package:gilam/menu/admin/yuvish.dart';
+import 'package:gilam/menu/admin/batafsil/dastavgabiriktirish.dart';
+import 'package:gilam/menu/admin/batafsil/qadoq.dart';
+import 'package:gilam/menu/admin/batafsil/yuvish.dart';
 import 'package:gilam/menu/dastavka/dastavka.dart';
 import 'package:gilam/menu/dastavka/lidadd.dart';
 import 'package:gilam/menu/zakaz/zakaz_home.dart';

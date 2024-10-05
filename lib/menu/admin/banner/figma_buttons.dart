@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gilam/menu/admin/batafsil.dart';
+import 'package:gilam/menu/admin/banner/batafsil.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart'; // Add this import for number formatting
@@ -165,7 +165,7 @@ class _CustomDialogState extends State<CustomDialog> {
   }
 
   Future<void> fetchKirimTuri() async {
-    final response = await http.get(Uri.parse('https://visualai.uz/apidemo/kirim_turi.php'));
+    final response = await http.get(Uri.parse('https://visualai.uz/api/kirim_turi.php'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -205,7 +205,7 @@ class _CustomDialogState extends State<CustomDialog> {
     };
 
     final response = await http.post(
-      Uri.parse('https://visualai.uz/apidemo/kirim_add.php'),
+      Uri.parse('https://visualai.uz/api/kirim_add.php'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(kirimData),
     );

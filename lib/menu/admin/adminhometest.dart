@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:gilam/menu/admin/batafsil.dart';
-import 'package:gilam/menu/admin/dastavgabiriktirish.dart';
-import 'package:gilam/menu/admin/dastavka.dart';
-import 'package:gilam/menu/admin/qadoq.dart';
-import 'package:gilam/menu/admin/tugallangan.dart';
-import 'package:gilam/menu/admin/yuvish.dart';
+import 'package:gilam/menu/admin/banner/batafsil.dart';
+import 'package:gilam/menu/admin/banner/summa.dart';
+import 'package:gilam/menu/admin/batafsil/dastavgabiriktirish.dart';
+import 'package:gilam/menu/admin/batafsil/dastavka.dart';
+import 'package:gilam/menu/admin/batafsil/qadoq.dart';
+import 'package:gilam/menu/admin/batafsil/tugallangan.dart';
+import 'package:gilam/menu/admin/batafsil/yuvish.dart';
 import 'adminhome.dart';
-import 'banners_page.dart'; // Banner sahifasini import qilish
-import 'figma_buttons.dart'; // Figma tugmalarini import qilish
+import 'banner/banners_page.dart'; // Banner sahifasini import qilish
+import 'banner/figma_buttons.dart'; // Figma tugmalarini import qilish
 
 class AdminHomeTestPage extends StatefulWidget {
   @override
@@ -177,6 +178,8 @@ class _HomePageState extends State<HomePage> {
               ),
               SizedBox(height: 10), // Bannerdan pastdagi bo'shliqni kamaytirish
               Property1Frame40959(), // Figma tugmalarini aks ettiradi
+              SizedBox(height: 10),
+              CartWidget(),
             ],
           ),
         ],

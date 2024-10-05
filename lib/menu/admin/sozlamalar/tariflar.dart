@@ -35,7 +35,7 @@ class _TariflarPageState extends State<TariflarPage> {
 
   // API orqali tariflar ro'yxatini yuklash
   Future<void> _fetchTariflar() async {
-    final url = 'https://visualai.uz/apidemo/tariflar.php';
+    final url = 'https://visualai.uz/api/tariflar.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -53,7 +53,7 @@ class _TariflarPageState extends State<TariflarPage> {
 
   // Yangi tarif qo'shish uchun API ga so'rov yuborish
   Future<void> _addTarif() async {
-    final url = 'https://visualai.uz/apidemo/tarifadd.php';
+    final url = 'https://visualai.uz/api/tarifadd.php';
     final newTarif = {
       'tarif_nomi': _tarifNomiController.text,
       'tarif_summa': int.parse(_tarifSummaController.text),
@@ -81,7 +81,7 @@ class _TariflarPageState extends State<TariflarPage> {
 
   // Tahrirlangan tarifni yangilash uchun API ga so'rov yuborish
   Future<void> _updateTarif(String id) async {
-    final url = 'https://visualai.uz/apidemo/tarifadd.php';
+    final url = 'https://visualai.uz/api/tarifadd.php';
     final updatedTarif = {
       'id': id, // Tahrirlanayotgan tarif ID si
       'tarif_nomi': _tarifNomiController.text,
@@ -101,6 +101,21 @@ class _TariflarPageState extends State<TariflarPage> {
           _fetchTariflar(); // Yangi ma'lumotlarni yuklash
           _tarifNomiController.clear(); // Input maydonini tozalash
           _tarifSummaController.clear(); // Summa inputini tozalash
+        }
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
+  Future<void> _deleteTarif(String id) async {
+    final url = 'https://visualai.uz/api/tarif_delete.php?id=$id';
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 'success') {
+          _fetchTariflar();
         }
       }
     } catch (e) {
@@ -265,6 +280,33 @@ class _TariflarPageState extends State<TariflarPage> {
                 subtitle: Text(
                   'Summa: ${_formatSum(tarif['tarif_summa'])}',
                   style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                ),
+                trailing: IconButton(
+                  icon: Icon(Icons.delete, color: Colors.red),
+                  onPressed: () async {
+                    final bool? result = await showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: Text('Tasdiqlash'),
+                          content: Text('Siz bu tarifni o\'chirishni xohlaysizmi?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: Text('Yo\'q'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: Text('Ha'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                    if (result == true) {
+                      await _deleteTarif(tarif['id']);
+                    }
+                  },
                 ),
               ),
             ),

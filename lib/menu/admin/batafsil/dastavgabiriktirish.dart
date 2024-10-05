@@ -3,36 +3,120 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 
-class DastavkaadminPage extends StatefulWidget {
+class DastavgabiriktirishPage extends StatefulWidget {
   @override
-  _ZakazlarPageState createState() => _ZakazlarPageState();
+  _DastavgabiriktirishPageState createState() => _DastavgabiriktirishPageState();
 }
 
-class _ZakazlarPageState extends State<DastavkaadminPage> {
+class _DastavgabiriktirishPageState extends State<DastavgabiriktirishPage> {
   List<dynamic> zakazlarList = [];
+  List<dynamic> dastavkachilarList = [];
+  bool isEditing = false; // Editing panel visibility toggle
+  int? selectedZakazId;
+  int? selectedDastavkachiId;
 
   @override
   void initState() {
     super.initState();
     _fetchZakazlar(); // Zakazlar ma'lumotlarini yuklash
+    _fetchDastavkachilar(); // Dastavkachilar ma'lumotlarini yuklash
   }
 
   // API orqali zakazlar ro'yxatini yuklash
   Future<void> _fetchZakazlar() async {
-    final url = 'https://visualai.uz/apidemo/dastavka.php?zakaz_status=4';
+    final url = 'https://visualai.uz/api/dastavka_update.php?zakaz_status=4';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print(data); // Debugging
         if (data['status'] == 'success') {
           setState(() {
             zakazlarList = data['data'];
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Ma\'lumotlar yuklanmadi'),
+            content: Text('Ma\'lumotlar yuklanmadi: ${data['message']}'),
           ));
         }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Serverdan noto\'g\'ri javob: ${response.statusCode}'),
+        ));
+      }
+    } catch (e) {
+      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Internet ulanishi xato'),
+      ));
+    }
+  }
+
+  // API orqali dastavkachilar ro'yxatini yuklash
+  Future<void> _fetchDastavkachilar() async {
+    final url = 'https://visualai.uz/api/shopirlar.php'; // Corrected API endpoint
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print(data); // Debugging: Check the entire response
+        if (data['error'] == false) {
+          setState(() {
+            dastavkachilarList = data['data']; // Assign the fetched data
+            print(dastavkachilarList); // Debugging: Check assigned data
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Dastavkachilar yuklanmadi: ${data['message']}'),
+          ));
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Serverdan noto\'g\'ri javob: ${response.statusCode}'),
+        ));
+      }
+    } catch (e) {
+      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Internet ulanishi xato'),
+      ));
+    }
+  }
+
+  // Zakaz va Dastavkachi biriktirish
+  Future<void> _assignDastavkachiToZakaz() async {
+    if (selectedZakazId == null || selectedDastavkachiId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Iltimos, zakaz va dastavkachini tanlang!'),
+      ));
+      return;
+    }
+
+    final url = 'https://visualai.uz/api/shopir_update.php';
+    final body = json.encode({
+      'user_id': selectedDastavkachiId,
+      'zakaz_id': selectedZakazId,
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: body,
+      );
+
+      final responseData = json.decode(response.body);
+      if (!responseData['error']) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Dastavkachi muvaffaqiyatli biriktirildi!'),
+        ));
+        setState(() {
+          isEditing = false; // Close the panel
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Xatolik yuz berdi: ${responseData['message']}'),
+        ));
       }
     } catch (e) {
       print('Error: $e');
@@ -47,7 +131,7 @@ class _ZakazlarPageState extends State<DastavkaadminPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Dastavka',
+          'Dastavkaga biriktirish',
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.blueAccent,
@@ -58,17 +142,30 @@ class _ZakazlarPageState extends State<DastavkaadminPage> {
           },
         ),
       ),
-      body: zakazlarList.isEmpty
-          ? Center(child: CircularProgressIndicator()) // Ma'lumotlar yuklanayotganda
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: zakazlarList.length,
-          itemBuilder: (context, index) {
-            final zakaz = zakazlarList[index];
-            return _buildZakazCard(zakaz);
-          },
-        ),
+      body: Stack(
+        children: [
+          // Main zakaz list
+          _buildZakazList(),
+
+          // Sliding editing panel
+          _buildEditingPanel(),
+        ],
+      ),
+    );
+  }
+
+  // Zakazlar ro'yxatini qurish
+  Widget _buildZakazList() {
+    return zakazlarList.isEmpty
+        ? Center(child: CircularProgressIndicator()) // Ma'lumotlar yuklanayotganda
+        : Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: ListView.builder(
+        itemCount: zakazlarList.length,
+        itemBuilder: (context, index) {
+          final zakaz = zakazlarList[index];
+          return _buildZakazCard(zakaz);
+        },
       ),
     );
   }
@@ -105,6 +202,7 @@ class _ZakazlarPageState extends State<DastavkaadminPage> {
                 ],
               ),
             _buildToggleAdditionalInfo(zakaz),
+            _buildEditButton(zakaz['zakaz_id']), // Add edit button with zakaz_id
           ],
         ),
       ),
@@ -274,4 +372,96 @@ class _ZakazlarPageState extends State<DastavkaadminPage> {
       ),
     );
   }
+
+  // Tahrirlash panelini ko'rsatish tugmasi
+  Widget _buildEditButton(int zakazId) {
+    return Align(
+      alignment: Alignment.centerRight,
+      child: IconButton(
+        icon: Icon(Icons.edit, color: Colors.blue),
+        onPressed: () {
+          setState(() {
+            isEditing = true; // Show editing panel
+            selectedZakazId = zakazId; // Set selected zakaz ID
+          });
+        },
+      ),
+    );
+  }
+
+// Tahrirlash paneli
+  Widget _buildEditingPanel() {
+    return AnimatedPositioned(
+      duration: Duration(milliseconds: 300),
+      left: isEditing ? 0 : -300, // Adjust the position based on `isEditing`
+      top: 0,
+      bottom: 0,
+      child: Container(
+        width: 300,
+        color: Colors.white,
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Zakaz ID: $selectedZakazId',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 16),
+            Text('Dastavkachiga biriktiring:', style: TextStyle(fontSize: 16)),
+            SizedBox(height: 8),
+            _buildDastavkachilarDropdown(),
+            Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      isEditing = false; // Close the panel
+                    });
+                  },
+                  child: Text('Yopish'),
+                ),
+                ElevatedButton(
+                  onPressed: _assignDastavkachiToZakaz,
+                  child: Text('Tastiqlash'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  // Dastavkachilar uchun DropdownButton yaratish
+  // Dastavkachilar uchun DropdownButton yaratish
+  Widget _buildDastavkachilarDropdown() {
+    return DropdownButton<int>(
+      isExpanded: true,
+      hint: Text('Dastavkachini tanlang'),
+      value: selectedDastavkachiId,
+      items: dastavkachilarList
+          .map((dastavkachi) {
+        // Check for null values and handle them appropriately
+        final int? id = int.tryParse(dastavkachi['id'] ?? '');
+        final String userName = dastavkachi['user_name'] ?? 'No name';
+        if (id == null) return null; // If id is null, skip this item
+        return DropdownMenuItem<int>(
+          value: id,
+          child: Text(userName),
+        );
+      })
+          .whereType<DropdownMenuItem<int>>() // Filter out null items and ensure type safety
+          .toList(),
+      onChanged: (value) {
+        setState(() {
+          selectedDastavkachiId = value;
+        });
+      },
+    );
+  }
+
 }

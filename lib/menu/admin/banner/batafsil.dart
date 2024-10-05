@@ -21,7 +21,7 @@ class _BatafsilPageState extends State<BatafsilPage> {
 
   Future<void> _fetchData() async {
     try {
-      final response = await http.get(Uri.parse('https://visualai.uz/apidemo/kirimlar.php'));
+      final response = await http.get(Uri.parse('https://visualai.uz/api/kirimlar.php'));
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
         setState(() {

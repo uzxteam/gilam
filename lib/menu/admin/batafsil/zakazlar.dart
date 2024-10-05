@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 
-class YuvuvPage extends StatefulWidget {
+class ZakazlarPage extends StatefulWidget {
   @override
   _ZakazlarPageState createState() => _ZakazlarPageState();
 }
 
-class _ZakazlarPageState extends State<YuvuvPage> {
+class _ZakazlarPageState extends State<ZakazlarPage> {
   List<dynamic> zakazlarList = [];
-  String formatSum(double sum) {
-    final formatter = NumberFormat('#,###');
-    return formatter.format(sum);
-  }
 
   @override
   void initState() {
@@ -24,7 +19,7 @@ class _ZakazlarPageState extends State<YuvuvPage> {
 
   // API orqali zakazlar ro'yxatini yuklash
   Future<void> _fetchZakazlar() async {
-    final url = 'https://visualai.uz/apidemo/yuvish.php?zakaz_status=2';
+    final url = 'https://visualai.uz/api/zakazlar.php?zakaz_status=1';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -52,7 +47,7 @@ class _ZakazlarPageState extends State<YuvuvPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Yuvishda',
+          'Zakazlar',
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.blueAccent,
@@ -175,21 +170,21 @@ class _ZakazlarPageState extends State<YuvuvPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Jami summa: ${formatSum(double.tryParse(zakaz['jami_summa'].toString()) ?? 0)} so\'m',
+          'Jami summa: ${zakaz['jami_summa']}',
           style: TextStyle(
             fontSize: 16,
             color: Colors.blueAccent,
           ),
         ),
         Text(
-          'Chegirma: ${formatSum(double.tryParse(zakaz['skidka_summa'].toString()) ?? 0)} so\'m',
+          'Chegirma: ${zakaz['skidka_summa']}',
           style: TextStyle(
             fontSize: 16,
             color: Colors.blueAccent,
           ),
         ),
         Text(
-          'Qoldiq summa: ${formatSum(double.tryParse(zakaz['qoldiq_summa'].toString()) ?? 0)} so\'m',
+          'Qoldiq summa: ${zakaz['qoldiq_summa']}',
           style: TextStyle(
             fontSize: 16,
             color: Colors.blueAccent,
@@ -237,7 +232,7 @@ class _ZakazlarPageState extends State<YuvuvPage> {
                 style: TextStyle(fontSize: 16),
               ),
               Text(
-                'Summa: ${formatSum(double.tryParse(product['zakaz_summa'].toString()) ?? 0)} so\'m',
+                'Summa: ${product['zakaz_summa']} so\'m',
                 style: TextStyle(fontSize: 16),
               ),
               Text(

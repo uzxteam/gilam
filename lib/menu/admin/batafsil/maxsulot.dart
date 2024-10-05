@@ -8,18 +8,17 @@ class MaxsulotTuriPage extends StatefulWidget {
 }
 
 class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
-  List<Map<String, dynamic>> maxsulotlar = []; // Maxsulotlar ro'yxati
-  TextEditingController _maxsulotTuriController = TextEditingController(); // Yangi maxsulot turi uchun controller
+  List<Map<String, dynamic>> maxsulotlar = [];
+  TextEditingController _maxsulotTuriController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _fetchMaxsulotlar(); // Sahifa yuklanganda maxsulotlarni yuklash
+    _fetchMaxsulotlar();
   }
 
-  // API orqali maxsulotlar ro'yxatini yuklash
   Future<void> _fetchMaxsulotlar() async {
-    final url = 'https://visualai.uz/apidemo/maxsulot.php';
+    final url = 'https://visualai.uz/api/maxsulot.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -35,9 +34,8 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
     }
   }
 
-  // Yangi maxsulot turini qo'shish uchun API ga so'rov yuborish
   Future<void> _addMaxsulotTuri() async {
-    final url = 'https://visualai.uz/apidemo/maxsulot_turiadd.php';
+    final url = 'https://visualai.uz/api/maxsulot_turiadd.php';
     final newMaxsulotTuri = {
       'maxsulot_turi': _maxsulotTuriController.text,
     };
@@ -51,9 +49,9 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['status'] == 'success') {
-          Navigator.of(context).pop(); // Dialogni yopish
-          _fetchMaxsulotlar(); // Yangi ma'lumotlarni yuklash
-          _maxsulotTuriController.clear(); // Input maydonini tozalash
+          Navigator.of(context).pop();
+          _fetchMaxsulotlar();
+          _maxsulotTuriController.clear();
         }
       }
     } catch (e) {
@@ -61,7 +59,22 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
     }
   }
 
-  // Yangi maxsulot turini qo'shish uchun dialogni ko'rsatish
+  // Maxsulot turini o'chirish
+  Future<void> _deleteMaxsulotTuri(String id) async {
+    final url = 'https://visualai.uz/api/maxsulot_turi_delete.php?id=$id';
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 'success') {
+          _fetchMaxsulotlar(); // Ma'lumotlarni yangilab olish
+        }
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
   void _showAddMaxsulotDialog() {
     showDialog(
       context: context,
@@ -103,7 +116,7 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
                   children: [
                     TextButton(
                       onPressed: () {
-                        Navigator.of(context).pop(); // Dialogni yopish
+                        Navigator.of(context).pop();
                       },
                       child: Text(
                         'Bekor qilish',
@@ -111,10 +124,10 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: _addMaxsulotTuri, // Yangi maxsulot turini qo'shish
+                      onPressed: _addMaxsulotTuri,
                       child: Text(
                         'Saqlash',
-                        style: TextStyle(color: Colors.white), // Matnni oq rangda ko'rsatish
+                        style: TextStyle(color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueAccent,
@@ -140,21 +153,9 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
       appBar: AppBar(
         title: Text('Maxsulot Turlari'),
         backgroundColor: Colors.blueAccent,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white), // Orqaga qaytish ikonkasi oq rangda
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        iconTheme: IconThemeData(color: Colors.white), // Barcha ikonkalarni oq rangda ko'rsatish
-        titleTextStyle: TextStyle(
-          color: Colors.white, // AppBar yozuvlarini oq rangda ko'rsatish
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
       ),
       body: maxsulotlar.isEmpty
-          ? Center(child: CircularProgressIndicator()) // Ma'lumot yuklanayotgan bo'lsa
+          ? Center(child: CircularProgressIndicator())
           : ListView.builder(
         itemCount: maxsulotlar.length,
         itemBuilder: (context, index) {
@@ -177,14 +178,18 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
                 maxsulot['maxsulot_turi'],
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
+              trailing: IconButton(
+                icon: Icon(Icons.delete, color: Colors.red),
+                onPressed: () => _deleteMaxsulotTuri(maxsulot['id'].toString()),
+              ),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddMaxsulotDialog, // Yangi maxsulot turini qo'shish
+        onPressed: _showAddMaxsulotDialog,
         backgroundColor: Colors.blueAccent,
-        child: Icon(Icons.add, color: Colors.white), // + icon oq rangda
+        child: Icon(Icons.add, color: Colors.white),
       ),
     );
   }

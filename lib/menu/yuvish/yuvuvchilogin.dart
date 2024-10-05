@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gilam/menu/admin/dastavgabiriktirish.dart';
+import 'package:gilam/menu/admin/batafsil/dastavgabiriktirish.dart';
 import 'package:gilam/menu/dastavka/dastavka.dart';
 import 'package:gilam/menu/quritish/quritish.dart';
 import 'package:gilam/menu/yuvish/yuvish.dart';

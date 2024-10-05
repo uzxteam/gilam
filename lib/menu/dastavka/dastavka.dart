@@ -60,7 +60,7 @@ class _DastavkaPageState extends State<DastavkaPage> {
 
   // API dan ma'lumotlarni olish
   Future<void> _fetchZakazlar() async {
-    final url = 'https://visualai.uz/apidemo/dastavka.php';
+    final url = 'https://visualai.uz/api/dastavka.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {

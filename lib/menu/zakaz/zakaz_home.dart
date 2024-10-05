@@ -96,7 +96,7 @@ class _ZakazHomePageState extends State<ZakazHomePage> {
 
   // API orqali tariflar ro'yxatini yuklash va SharedPreferences ga saqlash
   Future<void> _fetchTariflar() async {
-    final url = 'https://visualai.uz/apidemo/tariflar.php';
+    final url = 'https://visualai.uz/api/tariflar.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -117,7 +117,7 @@ class _ZakazHomePageState extends State<ZakazHomePage> {
 
   // API orqali maxsulotlar ro'yxatini yuklash va SharedPreferences ga saqlash
   Future<void> _fetchMaxsulotlar() async {
-    final url = 'https://visualai.uz/apidemo/maxsulot.php';
+    final url = 'https://visualai.uz/api/maxsulot.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -556,9 +556,7 @@ class _ZakazHomePageState extends State<ZakazHomePage> {
                     // "Maxsulot qo'shish" tugmasi
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => DastavkaLoginPage()),
-                        );
+                        Navigator.pop(context); // Orqaga qaytish
                       },
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),

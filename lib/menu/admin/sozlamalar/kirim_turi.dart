@@ -20,7 +20,7 @@ class KirimTuri {
 // Ma'lumot olish funksiyasi
 Future<List<KirimTuri>> fetchKirimTuri() async {
   final response =
-      await http.get(Uri.parse('https://visualai.uz/apidemo/kirim_turi.php'));
+      await http.get(Uri.parse('https://visualai.uz/api/kirim_turi.php'));
 
   if (response.statusCode == 200) {
     final parsedJson = jsonDecode(response.body);
@@ -34,7 +34,7 @@ Future<List<KirimTuri>> fetchKirimTuri() async {
 // Ma'lumot qo'shish funksiyasi
 Future<void> addKirimTuri(String kirimNomi) async {
   final response = await http.post(
-    Uri.parse('https://visualai.uz/apidemo/kirim_turi_add.php'),
+    Uri.parse('https://visualai.uz/api/kirim_turi_add.php'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({'kirim_nomi': kirimNomi}),
   );
@@ -49,7 +49,7 @@ Future<void> addKirimTuri(String kirimNomi) async {
 // Ma'lumotni o'chirish funksiyasi
 Future<void> deleteKirimTuri(String id) async {
   final response = await http.post(
-    Uri.parse('https://visualai.uz/apidemo/kirim_turi_delete.php'),
+    Uri.parse('https://visualai.uz/api/kirim_turi_delete.php'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({'kirim_id': id}),
   );

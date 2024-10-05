@@ -19,7 +19,7 @@ class _ZakazlarPageState extends State<QadoqPage> {
 
   // API orqali zakazlar ro'yxatini yuklash
   Future<void> _fetchZakazlar() async {
-    final url = 'https://visualai.uz/apidemo/qadoq.php?zakaz_status=3';
+    final url = 'https://visualai.uz/api/qadoq.php?zakaz_status=3';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {

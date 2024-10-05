@@ -30,7 +30,7 @@ class _LidAddPageState extends State<LidAddPage> {
   }
 
   Future<void> _fetchDataFromApi() async {
-    final response = await http.get(Uri.parse('https://visualai.uz/apidemo/lidlar.php'));
+    final response = await http.get(Uri.parse('https://visualai.uz/api/lidlar.php'));
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       cartData = data.map((item) => Map<String, dynamic>.from(item)).toList();
@@ -62,7 +62,7 @@ class _LidAddPageState extends State<LidAddPage> {
 
   Future<void> _sendDataToApi(Map<String, dynamic> data) async {
     final response = await http.post(
-      Uri.parse('https://visualai.uz/apidemo/lid_add.php'),
+      Uri.parse('https://visualai.uz/api/lid_add.php'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(data),
     );
@@ -74,7 +74,7 @@ class _LidAddPageState extends State<LidAddPage> {
 
   void _deleteCartItem(int index) async {
     final id = cartData[index]['id'];
-    final response = await http.get(Uri.parse('https://visualai.uz/apidemo/deletelid.php?id=$id'));
+    final response = await http.get(Uri.parse('https://visualai.uz/api/deletelid.php?id=$id'));
 
     if (response.statusCode == 200) {
       setState(() {

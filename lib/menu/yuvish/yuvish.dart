@@ -38,7 +38,7 @@ class _YuvishPageState extends State<YuvishPage> {
 
   // API orqali zakazlar ro'yxatini yuklash
   Future<void> _fetchZakazlar() async {
-    final url = 'https://visualai.uz/apidemo/yuvish.php';
+    final url = 'https://visualai.uz/api/yuvish.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -165,7 +165,7 @@ class _YuvishPageState extends State<YuvishPage> {
       'zakazlar': updatedDetails,
     };
 
-    final url = 'https://visualai.uz/apidemo/yuvuv_update.php';
+    final url = 'https://visualai.uz/api/yuvuv_update.php';
     try {
       final response = await http.post(
         Uri.parse(url),
