@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -394,6 +395,39 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
       return;
     }
 
+    // Get location data
+    Position? userLocation;
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    LocationPermission permission;
+
+    if (!serviceEnabled) {
+      // Prompt to enable GPS
+      await Geolocator.openLocationSettings();
+      return; // Wait for the user to enable it
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _showSnackbar(context, 'GPS ruxsat berilmagan.');
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      _showSnackbar(context, 'GPS ruxsat berish rad etildi. Iltimos, ilova sozlamalariga o\'ting.');
+      return;
+    }
+
+    // Get the user's current location (latitude & longitude)
+    try {
+      userLocation = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    } catch (e) {
+      _showSnackbar(context, 'Manzil olishda xatolik yuz berdi: $e');
+      return;
+    }
+
     // Naqd va O'tkazma qiymatlari bo'sh bo'lsa, ularni 0 qilib yuborish
     double naqdSumma = double.tryParse(_naqdController.text.replaceAll(',', '')) ?? 0.0;
     double otkazmaSumma = double.tryParse(_otkazmaController.text.replaceAll(',', '')) ?? 0.0;
@@ -415,6 +449,8 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
           "qoldiq_summa": double.parse(_qoldiqSummaController.text.replaceAll(',', '')), // Vergullarni olib tashlab, double qilib o'zgartirish
           "zakaz_haqida": _izohController.text,
           "zakaz_status": 1, // Zakaz statusini o'zgartiring
+          "latitude": userLocation?.latitude ?? 0.0, // Latitude from GPS
+          "longitude": userLocation?.longitude ?? 0.0, // Longitude from GPS
         }
       ],
       "zakaz_turi": widget.inputData, // Bu yerdagi input ma'lumotlarini oldingi sahifadan olingan ma'lumotlar
@@ -456,6 +492,7 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
       }
     }
   }
+
 
   // DNS muammolarni bartaraf qilish uchun alohida internetni tekshirish
   Future<bool> _checkInternetConnection() async {
@@ -516,7 +553,7 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
   Future<void> _submitOrder(Map<String, dynamic> orderData, BuildContext? context) async {
     try {
       final response = await http.post(
-        Uri.parse('https://visualai.uz/api/zakaz_add.php'),
+        Uri.parse('https://visualai.uz/apidemo/zakaz_add.php'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -526,16 +563,57 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
       if (response.statusCode == 200) {
         var responseData = json.decode(response.body);
         if (responseData['status'] == 'success') {
+          String zakazId = responseData['zakaz_id'].toString(); // Zakaz ID'ni olish
+
           // Muvaffaqiyatli xabar
           print('Zakaz muvaffaqiyatli qo\'shildi');
+
           if (context != null) {
-            _showSnackbar(context, 'Zakaz muvaffaqiyatli qo\'shildi');
-            // Zakaz muvaffaqiyatli qo'shilgandan keyin ZakazHomePage sahifasiga yo'naltirish
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => ZakazHomePage()),
-                  (Route<dynamic> route) => false,
+            // Zakaz ID'ni foydalanuvchiga ko'rsatish uchun dialog
+            await showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Zakaz muvaffaqiyatli'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min, // Dialog hajmini matn hajmiga moslashtirish
+                    children: [
+                      Text(
+                        'Sizning zakaz raqamingiz:',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      SizedBox(height: 10), // Bo'sh joy qo'shish
+                      Text(
+                        zakazId, // Zakaz ID'si katta va ajralib turadigan ko'rinishda
+                        style: TextStyle(
+                          fontSize: 28, // Katta shrift hajmi
+                          fontWeight: FontWeight.bold, // Qalin shrift
+                          color: Colors.blueAccent, // Rangni ko'k qilish
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop(); // Dialogni yopish
+                      },
+                      child: Text('Tushunarli'),
+                    ),
+                  ],
+                );
+              },
             );
+
+            // Zakaz muvaffaqiyatli qo'shilgandan keyin ZakazHomePage sahifasiga yo'naltirish
+            _showSnackbar(context, 'Zakaz muvaffaqiyatli qo\'shildi');
+            Future.delayed(Duration(seconds: 2), () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => ZakazHomePage()),
+                    (Route<dynamic> route) => false,
+              );
+            });
           }
         } else {
           print('Xatolik yuz berdi: ${responseData['message']}');
@@ -547,6 +625,7 @@ class _ZakazAddPageState extends State<ZakazAddPage> {
       print('Xatolik yuz berdi: $e');
     }
   }
+
 
   // Snackbar ko'rsatish funksiyasi
   void _showSnackbar(BuildContext context, String message) {

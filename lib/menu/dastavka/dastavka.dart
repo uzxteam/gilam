@@ -60,7 +60,7 @@ class _DastavkaPageState extends State<DastavkaPage> {
 
   // API dan ma'lumotlarni olish
   Future<void> _fetchZakazlar() async {
-    final url = 'https://visualai.uz/api/dastavka.php';
+    final url = 'https://visualai.uz/apidemo/dastavka.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -104,6 +104,89 @@ class _DastavkaPageState extends State<DastavkaPage> {
     setState(() {
       zakazlar = []; // zakazlar ro'yxatini bo'shatish
     });
+  }
+
+// Xarita tanlash uchun dialog ochish
+  Future<void> _openMapDialog(String latitude, String longitude) async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Xarita tanlang', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              OutlinedButton(
+                onPressed: () {
+                  _openGoogleMaps(latitude, longitude);
+                  Navigator.of(context).pop(); // Dialogni yopish
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.blue, backgroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                  side: BorderSide(color: Colors.blue, width: 2), // Tugma chekkasiga chiziq
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10), // Tugma burchaklarini yumaloqlash
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.map, color: Colors.blue), // Google Maps ikonasi
+                    SizedBox(width: 10),
+                    Text('Google Maps', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ),
+              SizedBox(height: 15), // Tugmalar orasidagi bo'sh joy
+              OutlinedButton(
+                onPressed: () {
+                  _openYandexMaps(latitude, longitude);
+                  Navigator.of(context).pop(); // Dialogni yopish
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red, backgroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                  side: BorderSide(color: Colors.red, width: 2), // Tugma chekkasiga chiziq
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10), // Tugma burchaklarini yumaloqlash
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.map_outlined, color: Colors.red), // Yandex Maps ikonasi
+                    SizedBox(width: 10),
+                    Text('Yandex Maps', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
+// Google Maps ochish
+  Future<void> _openGoogleMaps(String latitude, String longitude) async {
+    final url = 'https://www.google.com/maps?q=$latitude,$longitude';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      print('Google Maps ni ochib bo\'lmadi: $url');
+    }
+  }
+
+// Yandex Maps ochish
+  Future<void> _openYandexMaps(String latitude, String longitude) async {
+    final url = 'https://yandex.com/maps/?ll=$longitude,$latitude&z=14';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      print('Yandex Maps ni ochib bo\'lmadi: $url');
+    }
   }
 
   // Foydalanuvchini chiqish funksiyasi
@@ -205,6 +288,13 @@ class _DastavkaPageState extends State<DastavkaPage> {
                       _makePhoneCall(zakaz['mijoz']['mijoz_telefon']);
                     },
                   ),
+                  IconButton(
+                    icon: Icon(Icons.map, color: Colors.blue), // Google Maps iconi
+                    onPressed: () {
+                      _openMapDialog(zakaz['zakaz_latitude'], zakaz['zakaz_longitude']);
+                    },
+                  ),
+
                 ],
               ),
               SizedBox(height: 8),

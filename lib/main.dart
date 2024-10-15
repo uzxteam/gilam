@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:gilam/menu/admin/sozlamalar/kirim_turi.dart';
-import 'dart:async';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:gilam/splash/splash.dart'; // easy_localization import qilish
 
-import 'package:gilam/splash/splash.dart';
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
 
-void main() {
-  runApp(MyApp());
+  runApp(
+    EasyLocalization(
+      supportedLocales: [Locale('en', 'US'), Locale('uz', 'UZ')],
+      path: 'assets/translations',
+      fallbackLocale: Locale('en', 'US'),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -13,14 +21,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Splash Screen Example',
+      title: 'Gilam Yuvish',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      locale: context.locale, // Hozirgi til
+      supportedLocales: context.supportedLocales, // Qo'llab-quvvatlanadigan tillar
+      localizationsDelegates: context.localizationDelegates, // Delegatlar
       home: SplashScreen(),
     );
   }
 }
-
-
-

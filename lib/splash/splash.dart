@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gilam/menu/admin/adminhome.dart';
 import 'package:gilam/menu/admin/adminhometest.dart';
 import 'package:gilam/menu/dastavka/dastvakalogin.dart';
@@ -22,6 +23,17 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     _checkUserStatus(); // Foydalanuvchi holatini tekshirish funksiyasi chaqiriladi
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _closeKeyboard(); // Klaviaturani yopish
+  }
+
+  void _closeKeyboard() {
+    FocusScope.of(context).unfocus(); // Fokusni olib tashlash
+    SystemChannels.textInput.invokeMethod('TextInput.hide'); // Klaviaturani yopish
   }
 
   Future<void> _checkUserStatus() async {

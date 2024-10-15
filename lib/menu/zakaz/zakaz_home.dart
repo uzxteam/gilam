@@ -96,7 +96,7 @@ class _ZakazHomePageState extends State<ZakazHomePage> {
 
   // API orqali tariflar ro'yxatini yuklash va SharedPreferences ga saqlash
   Future<void> _fetchTariflar() async {
-    final url = 'https://visualai.uz/api/tariflar.php';
+    final url = 'https://visualai.uz/apidemo/tariflar.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -117,7 +117,7 @@ class _ZakazHomePageState extends State<ZakazHomePage> {
 
   // API orqali maxsulotlar ro'yxatini yuklash va SharedPreferences ga saqlash
   Future<void> _fetchMaxsulotlar() async {
-    final url = 'https://visualai.uz/api/maxsulot.php';
+    final url = 'https://visualai.uz/apidemo/maxsulot.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -528,16 +528,16 @@ class _ZakazHomePageState extends State<ZakazHomePage> {
                   ),
                 ),
 
-                // Zakaz oluvchi ismi
-                Text(
-                  userName, // Foydalanuvchi ismi SharedPreferences dan o'qiladi
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                  textAlign: TextAlign.center, // O'rtada joylashtirish
-                ),
+                // // Zakaz oluvchi ismi
+                // Text(
+                //   userName, // Foydalanuvchi ismi SharedPreferences dan o'qiladi
+                //   style: TextStyle(
+                //     fontSize: 24,
+                //     fontWeight: FontWeight.bold,
+                //     color: Colors.black,
+                //   ),
+                //   textAlign: TextAlign.center, // O'rtada joylashtirish
+                // ),
 
                 Expanded(
                   child: ListView(

@@ -32,7 +32,7 @@ class _HodimlarPageState extends State<HodimlarPage> {
 
   // API orqali hodimlar ro'yxatini yuklash va SharedPreferences ga saqlash
   Future<void> _fetchEmployees() async {
-    final url = 'https://visualai.uz/api/hodimlar.php';
+    final url = 'https://visualai.uz/apidemo/hodimlar.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -230,7 +230,7 @@ class _HodimlarPageState extends State<HodimlarPage> {
                     selectedStatus != null) {
                   // Yangi hodim qo'shish uchun API ga so'rov yuborish
                   final response = await http.post(
-                    Uri.parse('https://visualai.uz/api/hodimadd.php'),
+                    Uri.parse('https://visualai.uz/apidemo/hodimadd.php'),
                     headers: {'Content-Type': 'application/json'},
                     body: json.encode({
                       'user_name': userName,

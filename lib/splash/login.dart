@@ -19,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
     String password = _passwordController.text;
 
     // API'ga so'rov yuborish
-    var url = Uri.parse('https://visualai.uz/api/user_check.php');
+    var url = Uri.parse('https://visualai.uz/apidemo/user_check.php');
     var response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
@@ -54,87 +54,97 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Klaviatura balandligini aniqlash uchun
+    double keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch, // Kengligi to'liq bo'lishi uchun
-          children: [
-            // Rasm yuqorida kichikroq ko'rinishi uchun
-            Center(
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/splash.jpg'),
-                    fit: BoxFit.cover,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            minHeight: MediaQuery.of(context).size.height - keyboardHeight,
+          ),
+          child: IntrinsicHeight(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch, // Kengligi to'liq bo'lishi uchun
+              children: [
+                // Rasm yuqorida kichikroq ko'rinishi uchun
+                Center(
+                  child: Container(
+                    width: 200,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/splash.jpg'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            SizedBox(height: 40),
-            // Username input field
-            TextField(
-              controller: _usernameController,
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.person),
-                labelText: 'Username',
-                filled: true,
-                fillColor: Colors.grey[200],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                SizedBox(height: 40),
+                // Username input field
+                TextField(
+                  controller: _usernameController,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.person),
+                    labelText: 'Username',
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            SizedBox(height: 20),
-            // Password input field
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.lock),
-                labelText: 'Password',
-                filled: true,
-                fillColor: Colors.grey[200],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                SizedBox(height: 20),
+                // Password input field
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.lock),
+                    labelText: 'Password',
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            SizedBox(height: 40),
-            // Zamonaviy Saqlash button
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: Colors.blueAccent, // Tugma rangi
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12), // Yuvarlak tugma
+                SizedBox(height: 40),
+                // Zamonaviy Saqlash button
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.blueAccent, // Tugma rangi
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12), // Yuvarlak tugma
+                    ),
+                  ),
+                  onPressed: () => _login(context), // Saqlash tugmasi bosilganda login
+                  child: Text(
+                    'Kirish',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-              ),
-              onPressed: () => _login(context), // Saqlash tugmasi bosilganda login
-              child: Text(
-                'Kirish',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+                SizedBox(height: 20),
+                // Xatolik xabarini ko'rsatish
+                if (errorMessage.isNotEmpty)
+                  Text(
+                    errorMessage,
+                    style: TextStyle(color: Colors.red, fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+              ],
             ),
-            SizedBox(height: 20),
-            // Xatolik xabarini ko'rsatish
-            if (errorMessage.isNotEmpty)
-              Text(
-                errorMessage,
-                style: TextStyle(color: Colors.red, fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-          ],
+          ),
         ),
       ),
     );

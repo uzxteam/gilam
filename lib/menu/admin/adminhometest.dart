@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gilam/menu/admin/banner/batafsil.dart';
 import 'package:gilam/menu/admin/banner/summa.dart';
 import 'package:gilam/menu/admin/batafsil/dastavgabiriktirish.dart';
@@ -6,6 +7,8 @@ import 'package:gilam/menu/admin/batafsil/dastavka.dart';
 import 'package:gilam/menu/admin/batafsil/qadoq.dart';
 import 'package:gilam/menu/admin/batafsil/tugallangan.dart';
 import 'package:gilam/menu/admin/batafsil/yuvish.dart';
+import 'package:easy_localization/easy_localization.dart'; // Tarjimani qo'llash uchun import
+
 import 'adminhome.dart';
 import 'banner/banners_page.dart'; // Banner sahifasini import qilish
 import 'banner/figma_buttons.dart'; // Figma tugmalarini import qilish
@@ -18,19 +21,36 @@ class AdminHomeTestPage extends StatefulWidget {
 class _AdminHomeTestPageState extends State<AdminHomeTestPage> {
   final PageController _pageController = PageController(); // PageController yaratiladi
   int _currentIndex = 0;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsFlutterBinding.ensureInitialized();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
 
-  // Sahifalar ro'yxati
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    super.dispose();
+  }
+
   final List<Widget> _pages = [
     HomePage(),
     AdminHomePage(),
   ];
 
-  // BottomNavigationBar tugmalarini tanlash funksiyasi
   void _onTabTapped(int index) {
     setState(() {
       _currentIndex = index;
     });
-    _pageController.jumpToPage(index); // Sahifani almashtirish uchun PageView ga o'tish
+    _pageController.jumpToPage(index);
   }
 
   @override
@@ -46,20 +66,20 @@ class _AdminHomeTestPageState extends State<AdminHomeTestPage> {
         children: _pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.transparent, // Backgroundni shaffof qiladi
-        elevation: 0, // Elevation (soya) ni olib tashlaydi
-        selectedItemColor: Colors.blue, // Tanlangan element rangi
-        unselectedItemColor: Colors.grey, // Tanlanmagan element rangi
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
         currentIndex: _currentIndex,
         onTap: _onTabTapped,
         items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Home',
+            label: 'home'.tr(), // Tarjima qo'shildi
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
-            label: 'Settings',
+            label: 'settings'.tr(), // Tarjima qo'shildi
           ),
         ],
       ),
@@ -104,13 +124,13 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Admin Paneli'),
+        title: Text('admin_panel'.tr()), // Tarjima qo'shildi
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: Stack(
         children: [
-          // Orqa fon rasmi
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
@@ -119,72 +139,79 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          // Bannerlar uchun PageView
-          Column(
-            children: [
-              Container(
-                margin: EdgeInsets.only(top: 100), // AppBar'dan pastga bo'shliq qo'shildi
-                height: 200, // Banner balandligini oshirish
-                child: banners.isEmpty
-                    ? Center(child: CircularProgressIndicator()) // Ma'lumotlarni yuklash jarayoni
-                    : PageView.builder(
-                  controller: _pageController,
-                  itemCount: banners.length,
-                  itemBuilder: (context, index) {
-                    return BannerCardWidget(
-                      title: banners[index].title,
-                      amount: banners[index].amount,
-                      color: banners[index].color,
-                      zakazStatus: banners[index].zakazStatus,
-                      zakazSoni: banners[index].zakazSoni, // Zakaz soni qo'shildi
-                      onDetailPressed: () {
-                        // Har bir banner uchun sahifaga yo'naltirish
-                        switch (banners[index].zakazStatus) {
-                          case '1':
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => YuvuvPage()),
-                            );
-                            break;
-                          case '2':
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => QadoqPage()),
-                            );
-                            break;
-                          case '3':
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => DastavgabiriktirishPage()),
-                            );
-                            break;
-                          case '4':
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => DastavkaadminPage()),
-                            );
-                            break;
-                          case '5':
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => TugallanganPage()),
-                            );
-                            break;
-                        }
-                      },
-                    );
-                  },
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  margin: EdgeInsets.only(top: 100),
+                  height: 200,
+                  child: banners.isEmpty
+                      ? Center(child: CircularProgressIndicator())
+                      : PageView.builder(
+                    controller: _pageController,
+                    itemCount: banners.length,
+                    itemBuilder: (context, index) {
+                      return BannerCardWidget(
+                        title: banners[index].title,
+                        amount: banners[index].amount,
+                        color: banners[index].color,
+                        zakazStatus: banners[index].zakazStatus,
+                        zakazSoni: banners[index].zakazSoni,
+                        onDetailPressed: () {
+                          switch (banners[index].zakazStatus) {
+                            case '1':
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => YuvuvPage()),
+                              );
+                              break;
+                            case '2':
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => QadoqPage()),
+                              );
+                              break;
+                            case '3':
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        DastavgabiriktirishPage()),
+                              );
+                              break;
+                            case '4':
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        DastavkaadminPage()),
+                              );
+                              break;
+                            case '5':
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        TugallanganPage()),
+                              );
+                              break;
+                          }
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              SizedBox(height: 10), // Bannerdan pastdagi bo'shliqni kamaytirish
-              Property1Frame40959(), // Figma tugmalarini aks ettiradi
-              SizedBox(height: 10),
-              CartWidget(),
-            ],
+                SizedBox(height: 10),
+                Property1Frame40959(),
+                SizedBox(height: 10),
+                CartWidget(),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 }
-

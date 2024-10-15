@@ -30,7 +30,7 @@ class _LidAddPageState extends State<LidAddPage> {
   }
 
   Future<void> _fetchDataFromApi() async {
-    final response = await http.get(Uri.parse('https://visualai.uz/api/lidlar.php'));
+    final response = await http.get(Uri.parse('https://visualai.uz/apidemo/lidlar.php'));
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       cartData = data.map((item) => Map<String, dynamic>.from(item)).toList();
@@ -62,7 +62,7 @@ class _LidAddPageState extends State<LidAddPage> {
 
   Future<void> _sendDataToApi(Map<String, dynamic> data) async {
     final response = await http.post(
-      Uri.parse('https://visualai.uz/api/lid_add.php'),
+      Uri.parse('https://visualai.uz/apidemo/lid_add.php'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode(data),
     );
@@ -74,7 +74,7 @@ class _LidAddPageState extends State<LidAddPage> {
 
   void _deleteCartItem(int index) async {
     final id = cartData[index]['id'];
-    final response = await http.get(Uri.parse('https://visualai.uz/api/deletelid.php?id=$id'));
+    final response = await http.get(Uri.parse('https://visualai.uz/apidemo/deletelid.php?id=$id'));
 
     if (response.statusCode == 200) {
       setState(() {
@@ -171,76 +171,107 @@ class _LidAddPageState extends State<LidAddPage> {
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text('Ma\'lumot qo\'shish'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Mijoz Ismi',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    name = value;
-                  },
+        return StatefulBuilder(
+          builder: (context, setState) {
+            // Klaviatura holatini aniqlash
+            bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+
+            return AlertDialog(
+              title: isKeyboardVisible
+                  ? null // Klaviatura ochilganda title yashiriladi
+                  : Text('Ma\'lumot qo\'shish'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // To'rtala inputni yonma-yon joylashtirish uchun Row ichida
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Mijoz Ismi',
+                              border: OutlineInputBorder(),
+                            ),
+                            onChanged: (value) {
+                              name = value;
+                            },
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Telefon',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.phone,
+                            onChanged: (value) {
+                              phone = value;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Manzil',
+                              border: OutlineInputBorder(),
+                            ),
+                            onChanged: (value) {
+                              address = value;
+                            },
+                          ),
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Izoh',
+                              border: OutlineInputBorder(),
+                            ),
+                            onChanged: (value) {
+                              note = value;
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                SizedBox(height: 10),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Telefon',
-                    border: OutlineInputBorder(),
+              ),
+              actions: [
+                if (!isKeyboardVisible) // Klaviatura yopilganda tugmalar ko'rinadi
+                  TextButton(
+                    child: Text('Bekor qilish'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
                   ),
-                  keyboardType: TextInputType.phone,
-                  onChanged: (value) {
-                    phone = value;
-                  },
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Manzil',
-                    border: OutlineInputBorder(),
+                if (!isKeyboardVisible) // Klaviatura yopilganda tugmalar ko'rinadi
+                  TextButton(
+                    child: Text('Saqlash'),
+                    onPressed: () {
+                      if (name.isNotEmpty && phone.isNotEmpty && address.isNotEmpty && note.isNotEmpty) {
+                        _addCartItem(name, phone, address, note);
+                        Navigator.of(context).pop();
+                      }
+                    },
                   ),
-                  onChanged: (value) {
-                    address = value;
-                  },
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Izoh',
-                    border: OutlineInputBorder(),
-                  ),
-                  onChanged: (value) {
-                    note = value;
-                  },
-                ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              child: Text('Bekor qilish'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Saqlash'),
-              onPressed: () {
-                if (name.isNotEmpty && phone.isNotEmpty && address.isNotEmpty && note.isNotEmpty) {
-                  _addCartItem(name, phone, address, note);
-                  Navigator.of(context). pop();
-                }
-              },
-            ),
-          ],
+            );
+          },
         );
       },
     );
   }
+
+
+
 
   void _callPhoneNumber(String phone) async {
     final url = 'tel:$phone';

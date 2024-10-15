@@ -55,12 +55,12 @@ class DastavkaAdminLoginPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Container(
-                    height: 150,
+                    height: 100,
                     child: Center(
                       child: Text(
                         'Zakazlar',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -83,12 +83,12 @@ class DastavkaAdminLoginPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Container(
-                    height: 150,
+                    height: 100,
                     child: Center(
                       child: Text(
                         'Zakaz Olish',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -111,12 +111,12 @@ class DastavkaAdminLoginPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Container(
-                    height: 150,
+                    height: 100,
                     child: Center(
                       child: Text(
                         'Yetqazib Berish',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -139,12 +139,12 @@ class DastavkaAdminLoginPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Container(
-                    height: 150,
+                    height: 100,
                     child: Center(
                       child: Text(
                         'Dastavkaga biriktirish',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -167,12 +167,12 @@ class DastavkaAdminLoginPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Container(
-                    height: 150,
+                    height: 100,
                     child: Center(
                       child: Text(
                         'Yuvishda',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -195,12 +195,12 @@ class DastavkaAdminLoginPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Container(
-                    height: 150,
+                    height: 100,
                     child: Center(
                       child: Text(
                         'Qadoqlashda',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 32,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),

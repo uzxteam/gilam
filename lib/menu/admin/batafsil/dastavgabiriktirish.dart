@@ -24,7 +24,7 @@ class _DastavgabiriktirishPageState extends State<DastavgabiriktirishPage> {
 
   // API orqali zakazlar ro'yxatini yuklash
   Future<void> _fetchZakazlar() async {
-    final url = 'https://visualai.uz/api/dastavka_update.php?zakaz_status=4';
+    final url = 'https://visualai.uz/apidemo/dastavka_update.php?zakaz_status=4';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -54,7 +54,7 @@ class _DastavgabiriktirishPageState extends State<DastavgabiriktirishPage> {
 
   // API orqali dastavkachilar ro'yxatini yuklash
   Future<void> _fetchDastavkachilar() async {
-    final url = 'https://visualai.uz/api/shopirlar.php'; // Corrected API endpoint
+    final url = 'https://visualai.uz/apidemo/shopirlar.php'; // Corrected API endpoint
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -92,7 +92,7 @@ class _DastavgabiriktirishPageState extends State<DastavgabiriktirishPage> {
       return;
     }
 
-    final url = 'https://visualai.uz/api/shopir_update.php';
+    final url = 'https://visualai.uz/apidemo/shopir_update.php';
     final body = json.encode({
       'user_id': selectedDastavkachiId,
       'zakaz_id': selectedZakazId,

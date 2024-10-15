@@ -42,7 +42,7 @@ class _MijozlarPageState extends State<MijozlarPage> {
 
   // API orqali mijozlar ro'yxatini yuklash va SharedPreferences ga saqlash
   Future<void> _fetchCustomers() async {
-    final url = 'https://visualai.uz/api/mijozlar.php';
+    final url = 'https://visualai.uz/apidemo/mijozlar.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {

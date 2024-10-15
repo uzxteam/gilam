@@ -12,30 +12,22 @@ class TariflarPage extends StatefulWidget {
 
 class _TariflarPageState extends State<TariflarPage> {
   List<Map<String, dynamic>> tariflar = []; // Tariflar ro'yxati
+  List<Map<String, dynamic>> maxsulotlar = []; // Mahsulotlar ro'yxati
+  String? selectedMaxsulotId; // Tanlangan mahsulot ID
   TextEditingController _tarifNomiController = TextEditingController(); // Tarif nomi uchun controller
   TextEditingController _tarifSummaController = TextEditingController(); // Tarif summa uchun controller
   String? editingTarifId; // Tahrirlanayotgan tarif ID si
-  String _formatSum(dynamic sum) {
-    final formatter = NumberFormat('#,###');
-    int actualSum;
-    if (sum is String) {
-      actualSum = int.parse(sum);
-    } else {
-      actualSum = sum;
-    }
-    return formatter.format(actualSum);
-  }
-
 
   @override
   void initState() {
     super.initState();
     _fetchTariflar(); // Sahifa yuklanganda tariflarni yuklash
+    _fetchMaxsulotlar(); // Mahsulotlarni yuklash
   }
 
   // API orqali tariflar ro'yxatini yuklash
   Future<void> _fetchTariflar() async {
-    final url = 'https://visualai.uz/api/tariflar.php';
+    final url = 'https://visualai.uz/apidemo/tariflar.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -51,12 +43,31 @@ class _TariflarPageState extends State<TariflarPage> {
     }
   }
 
+  // API orqali mahsulotlar ro'yxatini yuklash
+  Future<void> _fetchMaxsulotlar() async {
+    final url = 'https://visualai.uz/apidemo/maxsulot.php';
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 'success') {
+          setState(() {
+            maxsulotlar = List<Map<String, dynamic>>.from(data['data']);
+          });
+        }
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
+  }
+
   // Yangi tarif qo'shish uchun API ga so'rov yuborish
   Future<void> _addTarif() async {
-    final url = 'https://visualai.uz/api/tarifadd.php';
+    final url = 'https://visualai.uz/apidemo/tarifadd.php';
     final newTarif = {
       'tarif_nomi': _tarifNomiController.text,
       'tarif_summa': int.parse(_tarifSummaController.text),
+      'maxsulot_id': selectedMaxsulotId, // Tanlangan mahsulot ID
     };
 
     try {
@@ -72,6 +83,7 @@ class _TariflarPageState extends State<TariflarPage> {
           _fetchTariflar(); // Yangi ma'lumotlarni yuklash
           _tarifNomiController.clear(); // Input maydonini tozalash
           _tarifSummaController.clear(); // Summa inputini tozalash
+          selectedMaxsulotId = null; // Tanlangan mahsulotni tozalash
         }
       }
     } catch (e) {
@@ -81,11 +93,12 @@ class _TariflarPageState extends State<TariflarPage> {
 
   // Tahrirlangan tarifni yangilash uchun API ga so'rov yuborish
   Future<void> _updateTarif(String id) async {
-    final url = 'https://visualai.uz/api/tarifadd.php';
+    final url = 'https://visualai.uz/apidemo/tarifadd.php';
     final updatedTarif = {
       'id': id, // Tahrirlanayotgan tarif ID si
       'tarif_nomi': _tarifNomiController.text,
       'tarif_summa': int.parse(_tarifSummaController.text),
+      'maxsulot_id': selectedMaxsulotId, // Tanlangan mahsulot ID
     };
 
     try {
@@ -101,21 +114,7 @@ class _TariflarPageState extends State<TariflarPage> {
           _fetchTariflar(); // Yangi ma'lumotlarni yuklash
           _tarifNomiController.clear(); // Input maydonini tozalash
           _tarifSummaController.clear(); // Summa inputini tozalash
-        }
-      }
-    } catch (e) {
-      print('Error: $e');
-    }
-  }
-
-  Future<void> _deleteTarif(String id) async {
-    final url = 'https://visualai.uz/api/tarif_delete.php?id=$id';
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['status'] == 'success') {
-          _fetchTariflar();
+          selectedMaxsulotId = null; // Tanlangan mahsulotni tozalash
         }
       }
     } catch (e) {
@@ -127,14 +126,15 @@ class _TariflarPageState extends State<TariflarPage> {
   void _showAddOrEditTarifDialog({bool isEdit = false, Map<String, dynamic>? tarif}) {
     if (isEdit && tarif != null) {
       _tarifNomiController.text = tarif['tarif_nomi'];
-      _tarifSummaController.text = _formatSum(tarif['tarif_summa']);
+      _tarifSummaController.text = tarif['tarif_summa'].toString();
       editingTarifId = tarif['id'];
+      selectedMaxsulotId = tarif['maxsulot_id'];
     } else {
       _tarifNomiController.clear();
       _tarifSummaController.clear();
       editingTarifId = null;
+      selectedMaxsulotId = null;
     }
-
 
     showDialog(
       context: context,
@@ -158,6 +158,27 @@ class _TariflarPageState extends State<TariflarPage> {
                   ),
                 ),
                 SizedBox(height: 15),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Maxsulot turini tanlang',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  value: selectedMaxsulotId,
+                  items: maxsulotlar.map<DropdownMenuItem<String>>((maxsulot) {
+                    return DropdownMenuItem<String>(
+                      value: maxsulot['id'],
+                      child: Text(maxsulot['maxsulot_turi']),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedMaxsulotId = value;
+                    });
+                  },
+                ),
+                SizedBox(height: 15),
                 TextField(
                   controller: _tarifNomiController,
                   decoration: InputDecoration(
@@ -174,7 +195,6 @@ class _TariflarPageState extends State<TariflarPage> {
                 TextField(
                   controller: _tarifSummaController,
                   keyboardType: TextInputType.number,
-                  inputFormatters: [NumberInputFormatter()],
                   decoration: InputDecoration(
                     labelText: 'Summa kiriting',
                     border: OutlineInputBorder(
@@ -185,7 +205,7 @@ class _TariflarPageState extends State<TariflarPage> {
                     hintText: 'Masalan: 10,000',
                   ),
                 ),
-                 SizedBox(height: 20),
+                SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -234,18 +254,6 @@ class _TariflarPageState extends State<TariflarPage> {
       appBar: AppBar(
         title: Text('Tariflar'),
         backgroundColor: Colors.blueAccent,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white), // Orqaga qaytish ikonkasi oq rangda
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        iconTheme: IconThemeData(color: Colors.white), // Barcha ikonkalarni oq rangda ko'rsatish
-        titleTextStyle: TextStyle(
-          color: Colors.white, // AppBar yozuvlarini oq rangda ko'rsatish
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
       ),
       body: tariflar.isEmpty
           ? Center(child: CircularProgressIndicator()) // Ma'lumot yuklanayotgan bo'lsa
@@ -253,61 +261,26 @@ class _TariflarPageState extends State<TariflarPage> {
         itemCount: tariflar.length,
         itemBuilder: (context, index) {
           final tarif = tariflar[index];
-          return Dismissible(
-            key: ValueKey(tarif['id']),
-            direction: DismissDirection.endToStart,
-            background: Container(
-              alignment: Alignment.centerRight,
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              color: Colors.blueAccent,
-              child: Icon(Icons.edit, color: Colors.white),
+          return Card(
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            confirmDismiss: (direction) async {
-              _showAddOrEditTarifDialog(isEdit: true, tarif: tarif);
-              return false; // O'chirish emas, faqat dialogni ochish
-            },
-            child: Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            child: ListTile(
+              contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+              title: Text(
+                tarif['tarif_nomi'],
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              child: ListTile(
-                contentPadding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                title: Text(
-                  tarif['tarif_nomi'],
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(
-                  'Summa: ${_formatSum(tarif['tarif_summa'])}',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                ),
-                trailing: IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
-                  onPressed: () async {
-                    final bool? result = await showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: Text('Tasdiqlash'),
-                          content: Text('Siz bu tarifni o\'chirishni xohlaysizmi?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: Text('Yo\'q'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: Text('Ha'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                    if (result == true) {
-                      await _deleteTarif(tarif['id']);
-                    }
-                  },
-                ),
+              subtitle: Text(
+                'Summa: ${tarif['tarif_summa']}',
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              ),
+              trailing: IconButton(
+                icon: Icon(Icons.edit, color: Colors.blueAccent),
+                onPressed: () {
+                  _showAddOrEditTarifDialog(isEdit: true, tarif: tarif); // Tarifni tahrirlash
+                },
               ),
             ),
           );

@@ -10,54 +10,171 @@ class HodimlarHisobotiPage extends StatefulWidget {
 class _HodimlarHisobotiPageState extends State<HodimlarHisobotiPage> {
   List<dynamic> hodimlar = [];
   List<dynamic> zakazlar = [];
-  bool isLoading = true; // Ma'lumotlar yuklanayotganini belgilash
+  List<dynamic> maxsulotlar = [];
+  List<dynamic> tariflar = [];
+  bool isLoading = true;
+  DateTime? startDate;
+  DateTime? endDate;
 
   @override
   void initState() {
     super.initState();
-    _fetchData(); // Sahifa yuklanganida API ma'lumotlarini olish
+    _fetchData(); // Load API data when the page is initialized
   }
 
   Future<void> _fetchData() async {
-    // Hodimlar ma'lumotini olish
-    final hodimlarResponse = await http.get(Uri.parse('https://visualai.uz/api/hodimlar.php'));
+    final hodimlarResponse = await http.get(Uri.parse('https://visualai.uz/apidemo/hodimlar.php'));
+    final zakazlarResponse = await http.get(Uri.parse('https://visualai.uz/apidemo/barchazakazlar.php'));
+    final maxsulotlarResponse = await http.get(Uri.parse('https://visualai.uz/apidemo/maxsulot.php'));
+    final tariflarResponse = await http.get(Uri.parse('https://visualai.uz/apidemo/tariflar.php'));
 
-    // Zakazlar ma'lumotini olish
-    final zakazlarResponse = await http.get(Uri.parse('https://visualai.uz/api/barchazakazlar.php'));
-
-    if (hodimlarResponse.statusCode == 200 && zakazlarResponse.statusCode == 200) {
+    if (hodimlarResponse.statusCode == 200 &&
+        zakazlarResponse.statusCode == 200 &&
+        maxsulotlarResponse.statusCode == 200 &&
+        tariflarResponse.statusCode == 200) {
       final hodimlarData = json.decode(hodimlarResponse.body);
       final zakazlarData = json.decode(zakazlarResponse.body);
+      final maxsulotlarData = json.decode(maxsulotlarResponse.body);
+      final tariflarData = json.decode(tariflarResponse.body);
 
-      if (!hodimlarData['error']) {
+      if (!hodimlarData['error'] &&
+          maxsulotlarData['status'] == 'success' &&
+          tariflarData['status'] == 'success') {
         setState(() {
-          hodimlar = hodimlarData['data']; // Hodimlar ma'lumotlari
-          zakazlar = zakazlarData; // Zakazlar ma'lumotlari
-          isLoading = false; // Yuklanish tugadi
+          hodimlar = hodimlarData['data'];
+          zakazlar = zakazlarData;
+          maxsulotlar = maxsulotlarData['data'];
+          tariflar = tariflarData['data'];
+          isLoading = false;
         });
       } else {
         setState(() {
-          isLoading = false; // Ma'lumotlarda xatolik bo'lsa yuklanishni to'xtatamiz
+          isLoading = false;
         });
       }
     } else {
       setState(() {
-        isLoading = false; // API xatolik bo'lsa yuklanishni to'xtatamiz
+        isLoading = false;
       });
     }
   }
 
-  double _calculateTotalKvadratForUser(String userId) {
-    double totalKvadrat = 0.0;
+  List<dynamic> _filterZakazlarByDate(DateTime? startDate, DateTime? endDate) {
+    if (startDate == null || endDate == null) return zakazlar;
 
-    // Hodimning barcha zakazlarini ko'rib chiqish va zakaz_kvadrat ni qo'shish
-    zakazlar.forEach((zakaz) {
-      if (zakaz['user_id'] == userId) {
-        totalKvadrat += double.tryParse(zakaz['zakaz_kvadrat']) ?? 0.0;
+    return zakazlar.where((zakaz) {
+      DateTime registrDate = DateTime.parse(zakaz['registr_date']);
+      return registrDate.isAfter(startDate) && registrDate.isBefore(endDate);
+    }).toList();
+  }
+
+  Map<String, dynamic> _getTarifInfo(String tarifId) {
+    // First, make sure you are dealing with a valid Map<String, dynamic>
+    var tarif = tariflar.firstWhere(
+          (tarif) => tarif['id'] == tarifId,
+      orElse: () => null,
+    );
+    return tarif != null ? Map<String, dynamic>.from(tarif) : {};
+  }
+
+  Map<String, dynamic> _getProductInfo(String maxsulotTuriId) {
+    // Similarly ensure correct type conversion
+    var maxsulot = maxsulotlar.firstWhere(
+          (maxsulot) => maxsulot['id'] == maxsulotTuriId,
+      orElse: () => null,
+    );
+    return maxsulot != null ? Map<String, dynamic>.from(maxsulot) : {};
+  }
+
+
+  Map<String, dynamic> _calculateTotalForUser(String userId, String yuvuvId, String qadoqId, String dastavkaId) {
+    Map<String, dynamic> totalData = {
+      'zakaz': {},
+      'yuvuv': {},
+      'qadoq': {},
+      'dastavka': {}
+    };
+
+    _filterZakazlarByDate(startDate, endDate).forEach((zakaz) {
+      String maxsulotTuriId = zakaz['maxsulot_turi'];
+      String tarifId = zakaz['zakaz_tarif'];
+      Map<String, dynamic> productInfo = _getProductInfo(maxsulotTuriId);
+      Map<String, dynamic> tarifInfo = _getTarifInfo(tarifId);
+
+      if (productInfo.isNotEmpty && tarifInfo.isNotEmpty) {
+        String holati = productInfo['maxsulot_holati'];
+        String turi = productInfo['maxsulot_turi'];
+
+        if (zakaz['user_id'] == userId) {
+          if (holati == '1') {
+            double kvadrat = double.tryParse(zakaz['zakaz_kvadrat']) ?? 0.0;
+            totalData['zakaz'][turi] = {
+              'kvadrat': (totalData['zakaz'][turi]?['kvadrat'] ?? 0.0) + kvadrat,
+            };
+          } else if (holati == '2') {
+            totalData['zakaz'][turi] = {
+              'soni': (totalData['zakaz'][turi]?['soni'] ?? 0) + 1,
+            };
+          }
+        }
+
+        if (zakaz['yuvuv_id'] == yuvuvId) {
+          totalData['yuvuv'][turi] = {
+            'soni': (totalData['yuvuv'][turi]?['soni'] ?? 0) + 1,
+          };
+        }
+
+        if (zakaz['qadoq_id'] == qadoqId) {
+          totalData['qadoq'][turi] = {
+            'soni': (totalData['qadoq'][turi]?['soni'] ?? 0) + 1,
+          };
+        }
+
+        if (zakaz['dastavka_id'] == dastavkaId) {
+          totalData['dastavka'][turi] = {
+            'soni': (totalData['dastavka'][turi]?['soni'] ?? 0) + 1,
+          };
+        }
       }
     });
 
-    return totalKvadrat;
+    return totalData;
+  }
+
+  String _getUserRole(String status) {
+    switch (status) {
+      case '1':
+        return 'Zakazchi';
+      case '2':
+        return 'Yuvuvchi';
+      case '3':
+        return 'Qadoqlovchi';
+      case '4':
+        return 'Yetkazib beruvchi';
+      case '5':
+        return 'Zakazchi + Yetkazib beruvchi';
+      case '6':
+        return 'Yuvuvchi + Qadoqlovchi';
+      case '7':
+        return 'Yordamchi Admin';
+      default:
+        return 'Noma\'lum';
+    }
+  }
+
+  Future<void> _selectDateRange(BuildContext context) async {
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      setState(() {
+        startDate = picked.start;
+        endDate = picked.end;
+      });
+    }
   }
 
   @override
@@ -65,21 +182,78 @@ class _HodimlarHisobotiPageState extends State<HodimlarHisobotiPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Hodimlar Hisoboti'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.date_range),
+            onPressed: () => _selectDateRange(context),
+          ),
+        ],
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator()) // Ma'lumotlar yuklanayotganida loader
+          ? Center(child: CircularProgressIndicator())
           : ListView.builder(
         itemCount: hodimlar.length,
         itemBuilder: (context, index) {
           final hodim = hodimlar[index];
-          final totalKvadrat = _calculateTotalKvadratForUser(hodim['id']); // Hodimning umumiy kvadrati
+          final totalData = _calculateTotalForUser(hodim['id'], hodim['id'], hodim['id'], hodim['id']);
+          final userRole = _getUserRole(hodim['user_status']);
 
           return Card(
             margin: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
             child: ListTile(
               leading: Icon(Icons.person, size: 40),
-              title: Text(hodim['user_name'], style: TextStyle(fontSize: 18)),
-              subtitle: Text('Umumiy kvadrat: $totalKvadrat m²'), // Umumiy kvadrat ko'rsatish
+              title: RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: hodim['user_name'],
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.black,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' ($userRole)',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (totalData['zakaz'].isNotEmpty) ...[
+                    Text('Zakaz oldi:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    ...totalData['zakaz'].entries.map((entry) {
+                      return Text('${entry.key}: ${entry.value['kvadrat'] ?? entry.value['soni']}');
+                    }).toList(),
+                  ],
+                  if (totalData['yuvuv'].isNotEmpty) ...[
+                    SizedBox(height: 8),
+                    Text('Yuvdi:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    ...totalData['yuvuv'].entries.map((entry) {
+                      return Text('${entry.key}: ${entry.value['soni']}');
+                    }).toList(),
+                  ],
+                  if (totalData['qadoq'].isNotEmpty) ...[
+                    SizedBox(height: 8),
+                    Text('Qadoqladi:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    ...totalData['qadoq'].entries.map((entry) {
+                      return Text('${entry.key}: ${entry.value['soni']}');
+                    }).toList(),
+                  ],
+                  if (totalData['dastavka'].isNotEmpty) ...[
+                    SizedBox(height: 8),
+                    Text('Yetkazdi:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    ...totalData['dastavka'].entries.map((entry) {
+                      return Text('${entry.key}: ${entry.value['soni']}');
+                    }).toList(),
+                  ],
+                ],
+              ),
             ),
           );
         },

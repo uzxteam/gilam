@@ -10,6 +10,13 @@ class MaxsulotTuriPage extends StatefulWidget {
 class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
   List<Map<String, dynamic>> maxsulotlar = [];
   TextEditingController _maxsulotTuriController = TextEditingController();
+  String? selectedMaxsulotHolati; // Maxsulot holati uchun tanlov (Kvadrat/Soni)
+
+  // Maxsulot holatlari: Kvadrat (1) va Soni (2)
+  final List<Map<String, String>> maxsulotHolatiOptions = [
+    {'id': '1', 'name': 'Kvadrat'},
+    {'id': '2', 'name': 'Soni'}
+  ];
 
   @override
   void initState() {
@@ -18,7 +25,7 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
   }
 
   Future<void> _fetchMaxsulotlar() async {
-    final url = 'https://visualai.uz/api/maxsulot.php';
+    final url = 'https://visualai.uz/apidemo/maxsulot.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -35,9 +42,10 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
   }
 
   Future<void> _addMaxsulotTuri() async {
-    final url = 'https://visualai.uz/api/maxsulot_turiadd.php';
+    final url = 'https://visualai.uz/apidemo/maxsulot_turiadd.php';
     final newMaxsulotTuri = {
       'maxsulot_turi': _maxsulotTuriController.text,
+      'maxsulot_holati': selectedMaxsulotHolati, // Maxsulot holatini yuborish
     };
 
     try {
@@ -52,6 +60,7 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
           Navigator.of(context).pop();
           _fetchMaxsulotlar();
           _maxsulotTuriController.clear();
+          selectedMaxsulotHolati = null; // Dropdownni tozalash
         }
       }
     } catch (e) {
@@ -61,7 +70,7 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
 
   // Maxsulot turini o'chirish
   Future<void> _deleteMaxsulotTuri(String id) async {
-    final url = 'https://visualai.uz/api/maxsulot_turi_delete.php?id=$id';
+    final url = 'https://visualai.uz/apidemo/maxsulot_turi_delete.php?id=$id';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -75,7 +84,15 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
     }
   }
 
-  void _showAddMaxsulotDialog() {
+  void _showAddMaxsulotDialog({bool isEdit = false, Map<String, dynamic>? maxsulot}) {
+    if (isEdit && maxsulot != null) {
+      _maxsulotTuriController.text = maxsulot['maxsulot_turi'];
+      selectedMaxsulotHolati = maxsulot['maxsulot_holati'].toString(); // Holatini olish
+    } else {
+      _maxsulotTuriController.clear();
+      selectedMaxsulotHolati = null;
+    }
+
     showDialog(
       context: context,
       builder: (context) {
@@ -90,7 +107,7 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Yangi Maxsulot Turi',
+                  isEdit ? 'Maxsulot Turini Tahrirlash' : 'Yangi Maxsulot Turi',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -109,6 +126,27 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
                     fillColor: Colors.grey[200],
                     hintText: 'Masalan: Elektronika',
                   ),
+                ),
+                SizedBox(height: 15),
+                DropdownButtonFormField<String>(
+                  decoration: InputDecoration(
+                    labelText: 'Maxsulot holati tanlang',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  value: selectedMaxsulotHolati,
+                  items: maxsulotHolatiOptions.map<DropdownMenuItem<String>>((option) {
+                    return DropdownMenuItem<String>(
+                      value: option['id'],
+                      child: Text(option['name']!),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedMaxsulotHolati = value; // Holatni saqlash
+                    });
+                  },
                 ),
                 SizedBox(height: 20),
                 Row(
@@ -178,9 +216,44 @@ class _MaxsulotTuriPageState extends State<MaxsulotTuriPage> {
                 maxsulot['maxsulot_turi'],
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              trailing: IconButton(
-                icon: Icon(Icons.delete, color: Colors.red),
-                onPressed: () => _deleteMaxsulotTuri(maxsulot['id'].toString()),
+              subtitle: Text('Holati: ${maxsulotHolatiOptions.firstWhere((option) => option['id'] == maxsulot['maxsulot_holati'].toString())['name']}'),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.edit, color: Colors.blueAccent),
+                    onPressed: () {
+                      _showAddMaxsulotDialog(isEdit: true, maxsulot: maxsulot);
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: () async {
+                      final bool? result = await showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: Text('Tasdiqlash'),
+                            content: Text('Siz bu mahsulot turini o\'chirishni xohlaysizmi?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: Text('Yo\'q'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(true),
+                                child: Text('Ha'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                      if (result == true) {
+                        await _deleteMaxsulotTuri(maxsulot['id'].toString());
+                      }
+                    },
+                  ),
+                ],
               ),
             ),
           );

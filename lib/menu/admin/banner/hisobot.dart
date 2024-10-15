@@ -1,15 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 
-class DastavkaadminPage extends StatefulWidget {
+class HisobotPage extends StatefulWidget {
   @override
-  _ZakazlarPageState createState() => _ZakazlarPageState();
+  _HisobotPageState createState() => _HisobotPageState();
 }
 
-class _ZakazlarPageState extends State<DastavkaadminPage> {
+class _HisobotPageState extends State<HisobotPage> {
   List<dynamic> zakazlarList = [];
+  DateTimeRange? selectedDateRange; // Sanalar oralig'i uchun o'zgaruvchi
+  List<dynamic> filteredZakazlarList = []; // Filtrlash uchun zakazlar ro'yxati
+
+  int totalZakazCount = 0;
+  double totalSumma = 0;
+  double totalSkidkaSumma = 0;
+  double totalQoldiqSumma = 0;
+
+  String _formatSum(dynamic sum) {
+    final formatter = NumberFormat('#,###');
+    double actualSum;
+
+    // Sumani double ga o'giramiz
+    if (sum is String) {
+      actualSum = double.parse(sum);
+    } else if (sum is int) {
+      actualSum = sum.toDouble(); // Agar int bo'lsa, uni double ga o'zgartiramiz
+    } else {
+      actualSum = sum; // Double bo'lsa, hech narsa o'zgartirmaymiz
+    }
+
+    return formatter.format(actualSum);
+  }
+
 
   @override
   void initState() {
@@ -19,7 +44,7 @@ class _ZakazlarPageState extends State<DastavkaadminPage> {
 
   // API orqali zakazlar ro'yxatini yuklash
   Future<void> _fetchZakazlar() async {
-    final url = 'https://visualai.uz/apidemo/dastavka.php?zakaz_status=4';
+    final url = 'https://visualai.uz/apidemo/barcha.php';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -27,6 +52,8 @@ class _ZakazlarPageState extends State<DastavkaadminPage> {
         if (data['status'] == 'success') {
           setState(() {
             zakazlarList = data['data'];
+            filteredZakazlarList = zakazlarList; // Asl ro'yxatni saqlaymiz
+            _calculateTotal(); // Hisoblash
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -42,12 +69,66 @@ class _ZakazlarPageState extends State<DastavkaadminPage> {
     }
   }
 
+  // Ma'lumotlarni tanlangan vaqt oralig'iga qarab filtrlaydi
+  void _filterZakazlarByDateRange(DateTimeRange? dateRange) {
+    if (dateRange != null) {
+      print('Tanlangan boshlanish sanasi: ${dateRange.start}');
+      print('Tanlangan tugash sanasi: ${dateRange.end}');
+
+      setState(() {
+        filteredZakazlarList = zakazlarList.where((zakaz) {
+          // "registr_date" ni DateTime obyektiga o'girib, sanalarni solishtirish
+          DateTime registrDate = DateTime.parse(zakaz['registr_date']);
+          print('Tekshirilayotgan zakazning registr_date: $registrDate');
+
+          // Sanalar oralig'ini tekshirish
+          bool isInDateRange = (registrDate.isAfter(dateRange.start) || registrDate.isAtSameMomentAs(dateRange.start)) &&
+              (registrDate.isBefore(dateRange.end) || registrDate.isAtSameMomentAs(dateRange.end));
+
+          print('Zakaz sanasi oralig\'ida: $isInDateRange');
+          return isInDateRange;
+        }).toList();
+        _calculateTotal(); // Hisoblash
+      });
+    }
+  }
+
+  // Jami zakazlar va summalarni hisoblash
+  void _calculateTotal() {
+    totalZakazCount = filteredZakazlarList.length;
+    totalSumma = 0;
+    totalSkidkaSumma = 0;
+    totalQoldiqSumma = 0;
+
+    for (var zakaz in filteredZakazlarList) {
+      totalSumma += double.tryParse(zakaz['jami_summa']) ?? 0;
+      totalSkidkaSumma += double.tryParse(zakaz['skidka_summa']) ?? 0;
+      totalQoldiqSumma += double.tryParse(zakaz['qoldiq_summa']) ?? 0;
+    }
+  }
+
+  // Sanalar oralig'ini tanlash
+  Future<void> _selectDateRange(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null && picked != selectedDateRange) {
+      setState(() {
+        selectedDateRange = picked;
+        _filterZakazlarByDateRange(selectedDateRange); // Zakazlar ro'yxatini sanaga qarab filtrlaymiz
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Dastavka',
+          'Tugallangan',
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.blueAccent,
@@ -57,18 +138,56 @@ class _ZakazlarPageState extends State<DastavkaadminPage> {
             Navigator.pop(context);
           },
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.date_range, color: Colors.white), // Date icon tugmasi
+            onPressed: () {
+              _selectDateRange(context); // Sana oralig'ini tanlash
+            },
+          ),
+        ],
       ),
-      body: zakazlarList.isEmpty
-          ? Center(child: CircularProgressIndicator()) // Ma'lumotlar yuklanayotganda
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: zakazlarList.length,
-          itemBuilder: (context, index) {
-            final zakaz = zakazlarList[index];
-            return _buildZakazCard(zakaz);
-          },
-        ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Zakazlar soni: $totalZakazCount',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  'Jami summa: ${_formatSum(totalSumma)} so\'m',
+                  style: TextStyle(fontSize: 18, color: Colors.blueAccent),
+                ),
+                Text(
+                  'Chegirma summa: ${_formatSum(totalSkidkaSumma)} so\'m',
+                  style: TextStyle(fontSize: 18, color: Colors.redAccent),
+                ),
+                Text(
+                  'Qoldiq summa: ${_formatSum(totalQoldiqSumma)} so\'m',
+                  style: TextStyle(fontSize: 18, color: Colors.green),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: filteredZakazlarList.isEmpty
+                ? Center(child: CircularProgressIndicator()) // Ma'lumotlar yuklanayotganda
+                : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ListView.builder(
+                itemCount: filteredZakazlarList.length,
+                itemBuilder: (context, index) {
+                  final zakaz = filteredZakazlarList[index];
+                  return _buildZakazCard(zakaz);
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -180,14 +299,14 @@ class _ZakazlarPageState extends State<DastavkaadminPage> {
           'Chegirma: ${zakaz['skidka_summa']}',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.blueAccent,
+            color: Colors.redAccent,
           ),
         ),
         Text(
           'Qoldiq summa: ${zakaz['qoldiq_summa']}',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.blueAccent,
+            color: Colors.green,
           ),
         ),
         if (zakaz['zakaz_haqida'] != null && zakaz['zakaz_haqida'].isNotEmpty)

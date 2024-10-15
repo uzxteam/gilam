@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:gilam/menu/admin/batafsil/hodimlar.dart';
+import 'package:gilam/menu/admin/sozlamalar/hodimlar.dart';
 import 'package:gilam/menu/admin/sozlamalar/kirim_turi.dart';
-import 'package:gilam/menu/admin/batafsil/maxsulot.dart';
+import 'package:gilam/menu/admin/sozlamalar/maxsulot.dart';
 import 'package:gilam/menu/admin/sozlamalar/mijozlar.dart';
 import 'package:gilam/menu/admin/sozlamalar/tariflar.dart';
 import 'package:gilam/splash/splash.dart';

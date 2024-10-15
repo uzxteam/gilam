@@ -11,6 +11,9 @@ class TugallanganPage extends StatefulWidget {
 
 class _ZakazlarPageState extends State<TugallanganPage> {
   List<dynamic> zakazlarList = [];
+  DateTimeRange? selectedDateRange; // Sanalar oralig'i uchun o'zgaruvchi
+  List<dynamic> filteredZakazlarList = []; // Filtrlash uchun zakazlar ro'yxati
+
   String _formatSum(dynamic sum) {
     final formatter = NumberFormat('#,###');
     int actualSum;
@@ -30,7 +33,7 @@ class _ZakazlarPageState extends State<TugallanganPage> {
 
   // API orqali zakazlar ro'yxatini yuklash
   Future<void> _fetchZakazlar() async {
-    final url = 'https://visualai.uz/api/tugadi.php?zakaz_status=5';
+    final url = 'https://visualai.uz/apidemo/tugadi.php?zakaz_status=5';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -38,6 +41,7 @@ class _ZakazlarPageState extends State<TugallanganPage> {
         if (data['status'] == 'success') {
           setState(() {
             zakazlarList = data['data'];
+            filteredZakazlarList = zakazlarList; // Asl ro'yxatni saqlaymiz
           });
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -50,6 +54,45 @@ class _ZakazlarPageState extends State<TugallanganPage> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Internet ulanishi xato'),
       ));
+    }
+  }
+
+  // Ma'lumotlarni tanlangan vaqt oralig'iga qarab filtrlaydi
+  void _filterZakazlarByDateRange(DateTimeRange? dateRange) {
+    if (dateRange != null) {
+      print('Tanlangan boshlanish sanasi: ${dateRange.start}');
+      print('Tanlangan tugash sanasi: ${dateRange.end}');
+
+      setState(() {
+        filteredZakazlarList = zakazlarList.where((zakaz) {
+          // "registr_date" ni DateTime obyektiga o'girib, sanalarni solishtirish
+          DateTime registrDate = DateTime.parse(zakaz['registr_date']);
+          print('Tekshirilayotgan zakazning registr_date: $registrDate');
+
+          // Sanalar oralig'ini tekshirish
+          bool isInDateRange = (registrDate.isAfter(dateRange.start) || registrDate.isAtSameMomentAs(dateRange.start)) &&
+              (registrDate.isBefore(dateRange.end) || registrDate.isAtSameMomentAs(dateRange.end));
+
+          print('Zakaz sanasi oralig\'ida: $isInDateRange');
+          return isInDateRange;
+        }).toList();
+      });
+    }
+  }
+
+  // Sanalar oralig'ini tanlash
+  Future<void> _selectDateRange(BuildContext context) async {
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null && picked != selectedDateRange) {
+      setState(() {
+        selectedDateRange = picked;
+        _filterZakazlarByDateRange(selectedDateRange); // Zakazlar ro'yxatini sanaga qarab filtrlaymiz
+      });
     }
   }
 
@@ -68,15 +111,23 @@ class _ZakazlarPageState extends State<TugallanganPage> {
             Navigator.pop(context);
           },
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.date_range, color: Colors.white), // Date icon tugmasi
+            onPressed: () {
+              _selectDateRange(context); // Sana oralig'ini tanlash
+            },
+          ),
+        ],
       ),
-      body: zakazlarList.isEmpty
+      body: filteredZakazlarList.isEmpty
           ? Center(child: CircularProgressIndicator()) // Ma'lumotlar yuklanayotganda
           : Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView.builder(
-          itemCount: zakazlarList.length,
+          itemCount: filteredZakazlarList.length,
           itemBuilder: (context, index) {
-            final zakaz = zakazlarList[index];
+            final zakaz = filteredZakazlarList[index];
             return _buildZakazCard(zakaz);
           },
         ),
